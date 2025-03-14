@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 const Dashboard = () => {
   const cardVariants = {
-    hover: { 
+    hover: {
       scale: 1.02,
       boxShadow: "0 10px 30px rgba(0, 0, 0, 0.05)",
       transition: { duration: 0.2 }
@@ -15,38 +15,38 @@ const Dashboard = () => {
 
   const cards = [
     {
-      title: "Products",
-      description: "Manage your products inventory",
+      title: "Productos",
+      description: "Gestione la información de sus productos",
       icon: Package,
-      link: "/products",
+      link: "/productos",
       color: "bg-blue-500",
     },
     {
-      title: "Categories",
-      description: "Organize your product categories",
+      title: "Categorías",
+      description: "Organiza tus categorías de productos",
       icon: Folders,
-      link: "/categories",
+      link: "/categorias",
       color: "bg-emerald-500",
     },
     {
-      title: "FAQs",
-      description: "Manage frequently asked questions",
+      title: "Preguntas frecuentes",
+      description: "Gestionar preguntas frecuentes",
       icon: HelpCircle,
       link: "/faqs",
       color: "bg-amber-500",
     },
     {
-      title: "Social Networks",
-      description: "Update your social media links",
+      title: "Redes sociales",
+      description: "Actualiza tus enlaces de redes sociales y información de contacto",
       icon: Share2,
-      link: "/social", 
+      link: "/social",
       color: "bg-purple-500",
     },
     {
-      title: "Price Updates",
-      description: "Update pricing information",
+      title: "Actualizar precios",
+      description: "Actualizar los precios de tus productos",
       icon: DollarSign,
-      link: "/prices",
+      link: "/precios",
       color: "bg-pink-500",
     },
   ];
@@ -56,18 +56,18 @@ const Dashboard = () => {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">
-          Welcome to your admin dashboard.
+          Bienvenido a tu panel de administración.
         </p>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {cards.map((card, index) => (
-          <Link 
+          <Link
             to={card.link}
             key={card.title}
             className="block"
           >
-            <motion.div 
+            <motion.div
               whileHover="hover"
               variants={cardVariants}
               initial={{ opacity: 0, y: 20 }}
@@ -85,7 +85,7 @@ const Dashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="text-sm text-muted-foreground">
-                    Click to manage
+                    Toque para acceder
                   </div>
                 </CardContent>
               </Card>

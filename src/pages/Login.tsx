@@ -40,15 +40,15 @@ const Login = ({ onLogin }: LoginProps) => {
       >
         <Card className="border-none shadow-lg">
           <CardHeader className="space-y-2 text-center">
-            <CardTitle className="text-2xl font-medium">Admin Panel</CardTitle>
+            <CardTitle className="text-2xl font-medium">Iniciar Sesión</CardTitle>
             <CardDescription>
-              Enter your credentials to access the dashboard
+            Ingrese sus credenciales para acceder al panel de administración
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="username">Correo Electrónico</Label>
                 <div className="relative">
                   <span className="absolute left-3 top-3 text-gray-400">
                     <User size={18} />
@@ -56,7 +56,7 @@ const Login = ({ onLogin }: LoginProps) => {
                   <Input
                     id="username"
                     type="text"
-                    placeholder="Enter your username"
+                    placeholder="Introduce tu nombre de correo electrónico"
                     className="pl-10"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
@@ -66,7 +66,7 @@ const Login = ({ onLogin }: LoginProps) => {
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">Contraseña</Label>
                 </div>
                 <div className="relative">
                   <span className="absolute left-3 top-3 text-gray-400">
@@ -75,7 +75,7 @@ const Login = ({ onLogin }: LoginProps) => {
                   <Input
                     id="password"
                     type="password"
-                    placeholder="Enter your password"
+                    placeholder="Ingrese su contraseña"
                     className="pl-10"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -88,12 +88,12 @@ const Login = ({ onLogin }: LoginProps) => {
                 className="w-full" 
                 disabled={isLoading}
               >
-                {isLoading ? "Logging in..." : "Login"}
+                {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
               </Button>
             </form>
           </CardContent>
           <CardFooter className="flex justify-center text-sm text-muted-foreground">
-            Secure admin management system
+            Desarrollado por Capasso Tech
           </CardFooter>
         </Card>
       </motion.div>

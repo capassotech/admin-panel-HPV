@@ -40,7 +40,7 @@ const ProductCard = ({ product, onEdit, onDelete, onToggleFeatured }) => {
           <div className="absolute top-2 right-2 flex gap-1">
             {product.IsFeatured && (
               <Badge variant="secondary" className="bg-amber-500 text-white">
-                Featured
+                Destacado
               </Badge>
             )}
           </div>
@@ -65,7 +65,7 @@ const ProductCard = ({ product, onEdit, onDelete, onToggleFeatured }) => {
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between gap-2">
           <Button size="sm" variant="outline" className="flex-1" onClick={() => onEdit(product)}>
-            <Edit size={14} className="mr-1" /> Edit
+            <Edit size={14} className="mr-1" /> Editar
           </Button>
           <Button 
             size="sm" 
@@ -73,7 +73,7 @@ const ProductCard = ({ product, onEdit, onDelete, onToggleFeatured }) => {
             className={`flex-1 ${product.IsFeatured ? "bg-amber-500 hover:bg-amber-600" : ""}`}
             onClick={() => onToggleFeatured(product)}
           >
-            <Star size={14} className="mr-1" /> {product.IsFeatured ? "Featured" : "Feature"}
+            <Star size={14} className="mr-1" /> {product.IsFeatured ? "Destacado" : "Destacar"}
           </Button>
           <Button size="sm" variant="outline" className="flex-none text-destructive" onClick={() => onDelete(product)}>
             <Trash2 size={14} />
@@ -116,12 +116,12 @@ const ProductForm = ({ product, onSave, onCancel }) => {
     >
       <div className="p-6">
         <h3 className="text-lg font-medium mb-4">
-          {product ? "Edit Product" : "Add New Product"}
+          {product ? "Editar producto" : "Agregar nuevo producto"}
         </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="Name">Name</Label>
+              <Label htmlFor="Name">Nombre</Label>
               <Input
                 id="Name"
                 name="Name"
@@ -143,7 +143,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="Description">Description</Label>
+            <Label htmlFor="Description">Descripción</Label>
             <Input
               id="Description"
               name="Description"
@@ -155,7 +155,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="Price">Price</Label>
+              <Label htmlFor="Price">Precio</Label>
               <Input
                 id="Price"
                 name="Price"
@@ -166,7 +166,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="PriceType">Price Type</Label>
+              <Label htmlFor="PriceType">Tipo</Label>
               <Input
                 id="PriceType"
                 name="PriceType"
@@ -177,7 +177,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="Size">Size</Label>
+            <Label htmlFor="Size">Tamaño</Label>
             <Input
               id="Size"
               name="Size"
@@ -196,16 +196,16 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                 checked={formData.IsFeatured}
                 onChange={(e) => setFormData(prev => ({ ...prev, IsFeatured: e.target.checked }))}
               />
-              <span>Featured product</span>
+              <span>Producto destacado</span>
             </Label>
           </div>
           
           <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="outline" onClick={onCancel}>
-              Cancel
+              Cancelar
             </Button>
             <Button type="submit">
-              Save Product
+              Guardar producto
             </Button>
           </div>
         </form>
@@ -285,7 +285,7 @@ const Products = () => {
   };
   
   const handleDeleteProduct = (product) => {
-    if (window.confirm(`Are you sure you want to delete ${product.Name}?`)) {
+    if (window.confirm(`¿Estás seguro de que quieres eliminar ${product.Name}?`)) {
       setProducts(prevProducts => 
         prevProducts.filter(p => p.IdProduct !== product.IdProduct)
       );
@@ -329,13 +329,13 @@ const Products = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Products</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Productos</h1>
           <p className="text-muted-foreground">
-            Manage your product inventory.
+          Gestione la información de sus productos.
           </p>
         </div>
         <Button className="sm:self-start" onClick={handleAddProduct}>
-          <Plus size={16} className="mr-2" /> Add Product
+          <Plus size={16} className="mr-2" /> Agregar producto
         </Button>
       </div>
       
@@ -358,14 +358,14 @@ const Products = () => {
               className="w-full sm:w-auto"
             >
               <TabsList>
-                <TabsTrigger value="all">All Products</TabsTrigger>
-                <TabsTrigger value="featured">Featured</TabsTrigger>
+                <TabsTrigger value="all">Todos</TabsTrigger>
+                <TabsTrigger value="featured">Destacado</TabsTrigger>
               </TabsList>
             </Tabs>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
               <Input
-                placeholder="Search products..."
+                placeholder="Buscar productos..."
                 value={searchTerm}
                 onChange={handleSearch}
                 className="pl-9 pr-4 w-full"
@@ -388,14 +388,14 @@ const Products = () => {
           ) : (
             <div className="text-center py-12">
               <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-2 text-lg font-medium">No products found</h3>
+              <h3 className="mt-2 text-lg font-medium">No se encontraron productos</h3>
               <p className="mt-1 text-muted-foreground">
                 {searchTerm 
                   ? "Try adjusting your search term." 
                   : "Get started by adding a new product."}
               </p>
               <Button className="mt-4" onClick={handleAddProduct}>
-                <Plus size={16} className="mr-2" /> Add Product
+                <Plus size={16} className="mr-2" /> Agregar producto
               </Button>
             </div>
           )}

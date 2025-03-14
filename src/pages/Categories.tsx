@@ -1,17 +1,17 @@
 
 import { useState } from "react";
-import { 
-  Card, CardContent, CardDescription, CardFooter, 
-  CardHeader, CardTitle 
+import {
+  Card, CardContent, CardDescription, CardFooter,
+  CardHeader, CardTitle
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
+import {
   Plus, Search, Edit, Trash2, Star, Folder,
-  FileText, Check, X 
+  FileText, Check, X
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -29,7 +29,7 @@ const CategoryCard = ({ category, onEdit, onDelete, onToggleFeatured }) => {
             <CardTitle className="text-base line-clamp-1">{category.Name}</CardTitle>
             {category.IsFeatured && (
               <Badge variant="secondary" className="bg-amber-500 text-white">
-                Featured
+                Destacada
               </Badge>
             )}
           </div>
@@ -39,20 +39,20 @@ const CategoryCard = ({ category, onEdit, onDelete, onToggleFeatured }) => {
         </CardHeader>
         <CardContent className="p-4 pt-0">
           <div className="mt-2 text-sm text-muted-foreground line-clamp-2">
-            {category.Description || "No description available"}
+            {category.Description || "No hay descripción disponible"}
           </div>
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between gap-2">
           <Button size="sm" variant="outline" className="flex-1" onClick={() => onEdit(category)}>
-            <Edit size={14} className="mr-1" /> Edit
+            <Edit size={14} className="mr-1" /> Editar
           </Button>
-          <Button 
-            size="sm" 
-            variant={category.IsFeatured ? "default" : "outline"} 
+          <Button
+            size="sm"
+            variant={category.IsFeatured ? "default" : "outline"}
             className={`flex-1 ${category.IsFeatured ? "bg-amber-500 hover:bg-amber-600" : ""}`}
             onClick={() => onToggleFeatured(category)}
           >
-            <Star size={14} className="mr-1" /> {category.IsFeatured ? "Featured" : "Feature"}
+            <Star size={14} className="mr-1" /> {category.IsFeatured ? "Destacada" : "Destacar"}
           </Button>
           <Button size="sm" variant="outline" className="flex-none text-destructive" onClick={() => onDelete(category)}>
             <Trash2 size={14} />
@@ -90,11 +90,11 @@ const CategoryForm = ({ category, onSave, onCancel }) => {
     >
       <div className="p-6">
         <h3 className="text-lg font-medium mb-4">
-          {category ? "Edit Category" : "Add New Category"}
+          {category ? "Editar categoría" : "Agregar nueva categoría"}
         </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="Name">Name</Label>
+            <Label htmlFor="Name">Nombre</Label>
             <Input
               id="Name"
               name="Name"
@@ -103,9 +103,9 @@ const CategoryForm = ({ category, onSave, onCancel }) => {
               required
             />
           </div>
-          
+
           <div className="space-y-2">
-            <Label htmlFor="Description">Description</Label>
+            <Label htmlFor="Description">Descripción</Label>
             <Input
               id="Description"
               name="Description"
@@ -113,7 +113,7 @@ const CategoryForm = ({ category, onSave, onCancel }) => {
               onChange={handleChange}
             />
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <Label htmlFor="IsFeatured" className="flex items-center space-x-2 cursor-pointer">
               <input
@@ -124,16 +124,16 @@ const CategoryForm = ({ category, onSave, onCancel }) => {
                 checked={formData.IsFeatured}
                 onChange={(e) => setFormData(prev => ({ ...prev, IsFeatured: e.target.checked }))}
               />
-              <span>Featured category</span>
+              <span>Categoría destacada</span>
             </Label>
           </div>
-          
+
           <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="outline" onClick={onCancel}>
-              Cancel
+              Cancelar
             </Button>
             <Button type="submit">
-              Save Category
+              Guardar categoría
             </Button>
           </div>
         </form>
@@ -147,7 +147,7 @@ const Categories = () => {
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [activeTab, setActiveTab] = useState("all");
-  
+
   // Mock data
   const mockCategories = [
     {
@@ -163,58 +163,58 @@ const Categories = () => {
       IsFeatured: false
     }
   ];
-  
+
   const [categories, setCategories] = useState(mockCategories);
-  
+
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
   };
-  
+
   const filteredCategories = categories.filter(category => {
-    const matchesSearch = category.Name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          (category.Description && category.Description.toLowerCase().includes(searchTerm.toLowerCase()));
-    
+    const matchesSearch = category.Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (category.Description && category.Description.toLowerCase().includes(searchTerm.toLowerCase()));
+
     if (activeTab === "all") return matchesSearch;
     if (activeTab === "featured") return matchesSearch && category.IsFeatured;
-    
+
     return false;
   });
-  
+
   const handleAddCategory = () => {
     setEditingCategory(null);
     setIsAddingCategory(true);
   };
-  
+
   const handleEditCategory = (category) => {
     setEditingCategory(category);
     setIsAddingCategory(true);
   };
-  
+
   const handleDeleteCategory = (category) => {
-    if (window.confirm(`Are you sure you want to delete ${category.Name}?`)) {
-      setCategories(prevCategories => 
+    if (window.confirm(`¿Estás seguro de que quieres eliminar ${category.Name}?`)) {
+      setCategories(prevCategories =>
         prevCategories.filter(c => c.IdCategory !== category.IdCategory)
       );
     }
   };
-  
+
   const handleToggleFeatured = (category) => {
-    setCategories(prevCategories => 
-      prevCategories.map(c => 
-        c.IdCategory === category.IdCategory 
-          ? { ...c, IsFeatured: !c.IsFeatured } 
+    setCategories(prevCategories =>
+      prevCategories.map(c =>
+        c.IdCategory === category.IdCategory
+          ? { ...c, IsFeatured: !c.IsFeatured }
           : c
       )
     );
   };
-  
+
   const handleSaveCategory = (categoryData) => {
     if (editingCategory) {
       // Update existing category
-      setCategories(prevCategories => 
-        prevCategories.map(c => 
-          c.IdCategory === editingCategory.IdCategory 
-            ? { ...categoryData, IdCategory: editingCategory.IdCategory } 
+      setCategories(prevCategories =>
+        prevCategories.map(c =>
+          c.IdCategory === editingCategory.IdCategory
+            ? { ...categoryData, IdCategory: editingCategory.IdCategory }
             : c
         )
       );
@@ -226,27 +226,27 @@ const Categories = () => {
       };
       setCategories(prevCategories => [...prevCategories, newCategory]);
     }
-    
+
     setIsAddingCategory(false);
     setEditingCategory(null);
   };
-  
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Categories</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Categorías</h1>
           <p className="text-muted-foreground">
-            Manage your product categories.
+            Gestione sus categorías de productos.
           </p>
         </div>
         <Button className="sm:self-start" onClick={handleAddCategory}>
-          <Plus size={16} className="mr-2" /> Add Category
+          <Plus size={16} className="mr-2" /> Agregar categoría
         </Button>
       </div>
-      
+
       {isAddingCategory ? (
-        <CategoryForm 
+        <CategoryForm
           category={editingCategory}
           onSave={handleSaveCategory}
           onCancel={() => {
@@ -257,33 +257,33 @@ const Categories = () => {
       ) : (
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row justify-between gap-4">
-            <Tabs 
-              defaultValue="all" 
-              value={activeTab} 
+            <Tabs
+              defaultValue="all"
+              value={activeTab}
               onValueChange={setActiveTab}
               className="w-full sm:w-auto"
             >
               <TabsList>
-                <TabsTrigger value="all">All Categories</TabsTrigger>
-                <TabsTrigger value="featured">Featured</TabsTrigger>
+                <TabsTrigger value="all">Todas</TabsTrigger>
+                <TabsTrigger value="featured">Destacada</TabsTrigger>
               </TabsList>
             </Tabs>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
               <Input
-                placeholder="Search categories..."
+                placeholder="Buscar categorías..."
                 value={searchTerm}
                 onChange={handleSearch}
                 className="pl-9 pr-4 w-full"
               />
             </div>
           </div>
-          
+
           {filteredCategories.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredCategories.map(category => (
-                <CategoryCard 
-                  key={category.IdCategory} 
+                <CategoryCard
+                  key={category.IdCategory}
                   category={category}
                   onEdit={handleEditCategory}
                   onDelete={handleDeleteCategory}
@@ -294,14 +294,14 @@ const Categories = () => {
           ) : (
             <div className="text-center py-12">
               <Folder className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-2 text-lg font-medium">No categories found</h3>
+              <h3 className="mt-2 text-lg font-medium">No se encontraron categorías</h3>
               <p className="mt-1 text-muted-foreground">
-                {searchTerm 
-                  ? "Try adjusting your search term." 
+                {searchTerm
+                  ? "Try adjusting your search term."
                   : "Get started by adding a new category."}
               </p>
               <Button className="mt-4" onClick={handleAddCategory}>
-                <Plus size={16} className="mr-2" /> Add Category
+                <Plus size={16} className="mr-2" /> Agregar categoría
               </Button>
             </div>
           )}

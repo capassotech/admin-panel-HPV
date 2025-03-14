@@ -73,11 +73,11 @@ const App = () => {
             >
               <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
-              <Route path="products" element={<Products />} />
-              <Route path="categories" element={<Categories />} />
+              <Route path="productos" element={<Products />} />
+              <Route path="categorias" element={<Categories />} />
               <Route path="faqs" element={<Faqs />} />
               <Route path="social" element={<SocialNetworks />} />
-              <Route path="prices" element={<PriceUpdates />} />
+              <Route path="precios" element={<PriceUpdates />} />
             </Route>
             
             <Route path="*" element={<NotFound />} />
