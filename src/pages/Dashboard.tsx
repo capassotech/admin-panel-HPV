@@ -1,0 +1,100 @@
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Package, Folders, HelpCircle, Share2, DollarSign } from "lucide-react";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+
+const Dashboard = () => {
+  const cardVariants = {
+    hover: { 
+      scale: 1.02,
+      boxShadow: "0 10px 30px rgba(0, 0, 0, 0.05)",
+      transition: { duration: 0.2 }
+    }
+  };
+
+  const cards = [
+    {
+      title: "Products",
+      description: "Manage your products inventory",
+      icon: Package,
+      link: "/products",
+      color: "bg-blue-500",
+    },
+    {
+      title: "Categories",
+      description: "Organize your product categories",
+      icon: Folders,
+      link: "/categories",
+      color: "bg-emerald-500",
+    },
+    {
+      title: "FAQs",
+      description: "Manage frequently asked questions",
+      icon: HelpCircle,
+      link: "/faqs",
+      color: "bg-amber-500",
+    },
+    {
+      title: "Social Networks",
+      description: "Update your social media links",
+      icon: Share2,
+      link: "/social", 
+      color: "bg-purple-500",
+    },
+    {
+      title: "Price Updates",
+      description: "Update pricing information",
+      icon: DollarSign,
+      link: "/prices",
+      color: "bg-pink-500",
+    },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground">
+          Welcome to your admin dashboard.
+        </p>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {cards.map((card, index) => (
+          <Link 
+            to={card.link}
+            key={card.title}
+            className="block"
+          >
+            <motion.div 
+              whileHover="hover"
+              variants={cardVariants}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
+            >
+              <Card className="overflow-hidden h-full border">
+                <div className={`${card.color} h-2`} />
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center">
+                    <card.icon className="mr-2 h-5 w-5" />
+                    {card.title}
+                  </CardTitle>
+                  <CardDescription>{card.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-sm text-muted-foreground">
+                    Click to manage
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;
