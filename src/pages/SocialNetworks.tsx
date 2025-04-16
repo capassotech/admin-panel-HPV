@@ -1,19 +1,33 @@
-
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
-  Card, CardContent, CardDescription, CardFooter,
-  CardHeader, CardTitle
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Plus, Edit, Trash2, Share2, Facebook,
-  Instagram, Twitter, Youtube, Linkedin,
-  Globe, FileText
+  Plus,
+  Edit,
+  Trash2,
+  Share2,
+  Facebook,
+  Instagram,
+  Twitter,
+  Youtube,
+  Linkedin,
+  Globe,
+  FileText,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { database } from "@/firebase";
+import { ref as dbRef, onValue, push, update, remove } from "firebase/database";
 
+// Mapeo de íconos para redes sociales
 const socialIcons = {
   facebook: Facebook,
   instagram: Instagram,
@@ -21,11 +35,12 @@ const socialIcons = {
   youtube: Youtube,
   linkedin: Linkedin,
   website: Globe,
-  default: Share2
+  default: Share2,
 };
 
+// Componente SocialCard
 const SocialCard = ({ social, onEdit, onDelete }) => {
-  const Icon = socialIcons[social.type] || socialIcons.default;
+  const Icon = socialIcons[social.Type] || socialIcons.default;
 
   return (
     <motion.div
@@ -41,15 +56,18 @@ const SocialCard = ({ social, onEdit, onDelete }) => {
               <Icon size={18} className="text-primary" />
             </div>
             <div className="flex-1">
-              <CardTitle className="text-base">{social.name}</CardTitle>
-              <CardDescription className="text-xs">
-                {social.url}
-              </CardDescription>
+              <CardTitle className="text-base">{social.Name}</CardTitle>
+              <CardDescription className="text-xs">{social.Url}</CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardFooter className="p-4 pt-0 flex justify-between gap-2">
-          <Button size="sm" variant="outline" className="flex-1" onClick={() => onEdit(social)}>
+          <Button
+            size="sm"
+            variant="outline"
+            className="flex-1"
+            onClick={() => onEdit(social)}
+          >
             <Edit size={14} className="mr-1" /> Editar
           </Button>
           <Button
@@ -66,17 +84,18 @@ const SocialCard = ({ social, onEdit, onDelete }) => {
   );
 };
 
+// Componente SocialForm
 const SocialForm = ({ social, onSave, onCancel }) => {
   const [formData, setFormData] = useState(social || {
-    id: null,
-    name: "",
-    url: "",
-    type: "default"
+    Id: null,
+    Name: "",
+    Url: "",
+    Type: "default",
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e) => {
@@ -99,22 +118,22 @@ const SocialForm = ({ social, onSave, onCancel }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Nombre</Label>
+              <Label htmlFor="Name">Nombre</Label>
               <Input
-                id="name"
-                name="name"
+                id="Name"
+                name="Name"
                 placeholder="Ej. Facebook"
-                value={formData.name}
+                value={formData.Name}
                 onChange={handleChange}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="type">Tipo</Label>
+              <Label htmlFor="Type">Tipo</Label>
               <select
-                id="type"
-                name="type"
-                value={formData.type}
+                id="Type"
+                name="Type"
+                value={formData.Type}
                 onChange={handleChange}
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
@@ -130,12 +149,12 @@ const SocialForm = ({ social, onSave, onCancel }) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="url">URL</Label>
+            <Label htmlFor="Url">URL</Label>
             <Input
-              id="url"
-              name="url"
+              id="Url"
+              name="Url"
               placeholder="https://..."
-              value={formData.url}
+              value={formData.Url}
               onChange={handleChange}
               required
             />
@@ -145,9 +164,7 @@ const SocialForm = ({ social, onSave, onCancel }) => {
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancelar
             </Button>
-            <Button type="submit">
-              Guardar
-            </Button>
+            <Button type="submit">Guardar</Button>
           </div>
         </form>
       </div>
@@ -155,67 +172,54 @@ const SocialForm = ({ social, onSave, onCancel }) => {
   );
 };
 
+// Componente principal SocialNetworks
 const SocialNetworks = () => {
   const [isAddingSocial, setIsAddingSocial] = useState(false);
   const [editingSocial, setEditingSocial] = useState(null);
+  const [socials, setSocials] = useState([]);
 
-  // Mock data
-  const mockSocials = [
-    {
-      id: 1,
-      name: "Facebook",
-      url: "https://facebook.com/company",
-      type: "facebook"
-    },
-    {
-      id: 2,
-      name: "Instagram",
-      url: "https://instagram.com/company",
-      type: "instagram"
-    },
-    {
-      id: 3,
-      name: "Website",
-      url: "https://company.com",
-      type: "website"
-    }
-  ];
+  // Cargar redes sociales desde Firebase
+  useEffect(() => {
+    const socialsRef = dbRef(database, "RRSS");
+    onValue(socialsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const socialList = Object.keys(data).map((key) => ({
+          Id: key,
+          ...data[key],
+        }));
+        setSocials(socialList);
+      } else {
+        setSocials([]);
+      }
+    });
+  }, []);
 
-  const [socials, setSocials] = useState(mockSocials);
-
-  const handleAddSocial = () => {
-    setEditingSocial(null);
-    setIsAddingSocial(true);
-  };
-
-  const handleEditSocial = (social) => {
-    setEditingSocial(social);
-    setIsAddingSocial(true);
-  };
-
-  const handleDeleteSocial = (social) => {
-    if (window.confirm(`¿Estás seguro de que quieres eliminar ${social.name}?`)) {
-      setSocials(prevSocials => prevSocials.filter(s => s.id !== social.id));
-    }
-  };
-
-  const handleSaveSocial = (socialData) => {
+  // Guardar red social (agregar o editar)
+  const handleSaveSocial = async (socialData) => {
     if (editingSocial) {
-      // Update existing social
-      setSocials(prevSocials =>
-        prevSocials.map(s => s.id === editingSocial.id ? { ...socialData, id: editingSocial.id } : s)
-      );
+      // Editar red social existente
+      const socialRef = dbRef(database, `RRSS/${editingSocial.Id}`);
+      await update(socialRef, socialData);
     } else {
-      // Add new social
+      // Agregar nueva red social
+      const newSocialRef = push(dbRef(database, "RRSS"));
       const newSocial = {
         ...socialData,
-        id: Date.now()
+        Id: newSocialRef.key,
       };
-      setSocials(prevSocials => [...prevSocials, newSocial]);
+      await update(newSocialRef, newSocial);
     }
-
     setIsAddingSocial(false);
     setEditingSocial(null);
+  };
+
+  // Eliminar red social
+  const handleDeleteSocial = (social) => {
+    if (window.confirm(`¿Estás seguro de que quieres eliminar ${social.Name}?`)) {
+      const socialRef = dbRef(database, `RRSS/${social.Id}`);
+      remove(socialRef);
+    }
   };
 
   return (
@@ -224,10 +228,10 @@ const SocialNetworks = () => {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Redes sociales</h1>
           <p className="text-muted-foreground">
-            Administre tus enlaces de redes sociales y tu sitio web.
+            Administre sus enlaces de redes sociales y su sitio web.
           </p>
         </div>
-        <Button className="sm:self-start" onClick={handleAddSocial}>
+        <Button className="sm:self-start" onClick={() => setIsAddingSocial(true)}>
           <Plus size={16} className="mr-2" /> Agregar
         </Button>
       </div>
@@ -245,11 +249,14 @@ const SocialNetworks = () => {
         <div className="space-y-4">
           {socials.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {socials.map(social => (
+              {socials.map((social) => (
                 <SocialCard
-                  key={social.id}
+                  key={social.Id}
                   social={social}
-                  onEdit={handleEditSocial}
+                  onEdit={(s) => {
+                    setEditingSocial(s);
+                    setIsAddingSocial(true);
+                  }}
                   onDelete={handleDeleteSocial}
                 />
               ))}
@@ -259,9 +266,9 @@ const SocialNetworks = () => {
               <Share2 className="mx-auto h-12 w-12 text-muted-foreground" />
               <h3 className="mt-2 text-lg font-medium">No se encontraron enlaces sociales</h3>
               <p className="mt-1 text-muted-foreground">
-              Comience agregando una nueva red social.
+                Comience agregando una nueva red social.
               </p>
-              <Button className="mt-4" onClick={handleAddSocial}>
+              <Button className="mt-4" onClick={() => setIsAddingSocial(true)}>
                 <Plus size={16} className="mr-2" /> Agregar
               </Button>
             </div>
