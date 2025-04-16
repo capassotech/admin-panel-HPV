@@ -1,22 +1,169 @@
-
-import { useState } from "react";
-import { 
-  Card, CardContent, CardDescription, CardFooter, 
-  CardHeader, CardTitle 
-} from "@/components/ui/card";
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
-  Plus, Search, Edit, Trash2, Star, Image, Package,
-  FileText, Check, X 
-} from "lucide-react";
-import { motion } from "framer-motion";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus, Star, Trash2, FileText, Edit, Package, Image, Search } from "lucide-react";
+// Importaciones de Firebase
+import { database } from "@/firebase"; // Importa la instancia de Realtime Database
+import { storage } from "@/firebase"; // Importa la instancia de Firebase Storage
 
-const ProductCard = ({ product, onEdit, onDelete, onToggleFeatured }) => {
+// Métodos de Firebase Realtime Database
+import { ref as dbRef, onValue, push, update, remove, ref } from "firebase/database";
+
+// Métodos de Firebase Storage
+import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+
+const Products = () => {
+  const [products, setProducts] = useState([]);
+  const [isAddingProduct, setIsAddingProduct] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [activeTab, setActiveTab] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    const productsRef = ref(database, "Product");
+    onValue(productsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const productList = Object.keys(data).map((key) => ({
+          IdProduct: key,
+          ...data[key],
+        }));
+        setProducts(productList);
+      } else {
+        setProducts([]);
+      }
+    });
+  }, []);
+
+  // Guardar producto (agregar o editar)
+  const handleSaveProduct = async (productData) => {
+    if (editingProduct) {
+      // Editar producto existente
+      const productRef = ref(database, `Product/${editingProduct.IdProduct}`);
+      await update(productRef, productData);
+    } else {
+      // Agregar nuevo producto
+      const newProductRef = push(ref(database, "Product"));
+      const newProduct = {
+        ...productData,
+        IdProduct: newProductRef.key,
+      };
+      await update(newProductRef, newProduct);
+    }
+    setIsAddingProduct(false);
+    setEditingProduct(null);
+  };
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch =
+      product.Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.Description.toLowerCase().includes(searchTerm.toLowerCase());
+    if (activeTab === "all") return matchesSearch;
+    if (activeTab === "featured") return matchesSearch && product.IsFeatured;
+    return false;
+  });
+
+  const handleEditProduct = (product) => {
+    setEditingProduct(product);
+    setIsAddingProduct(true);
+  };
+
+  // Eliminar producto
+  const handleDeleteProduct = (product) => {
+    if (window.confirm("¿Estás seguro de que deseas eliminar este producto?")) {
+      const productRef = ref(database, `Product/${product.IdProduct}`);
+      remove(productRef);
+    }
+  };
+
+  const handleToggleFeatured = (product) => {
+    const productRef = ref(database, `Product/${product.IdProduct}`);
+    update(productRef, { IsFeatured: !product.IsFeatured });
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Productos</h1>
+          <p className="text-muted-foreground">Gestione la información de sus productos.</p>
+        </div>
+        <Button className="sm:self-start" onClick={() => setIsAddingProduct(true)}>
+          <Plus size={16} className="mr-2" /> Agregar producto
+        </Button>
+      </div>
+      {isAddingProduct ? (
+        <ProductForm
+          product={editingProduct}
+          onSave={handleSaveProduct}
+          onCancel={() => {
+            setIsAddingProduct(false);
+            setEditingProduct(null);
+          }}
+        />
+      ) : (
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between gap-4">
+            <Tabs
+              defaultValue="all"
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="w-full sm:w-auto"
+            >
+              <TabsList>
+                <TabsTrigger value="all">Todos</TabsTrigger>
+                <TabsTrigger value="featured">Destacado</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
+              <Input
+                placeholder="Buscar productos..."
+                value={searchTerm}
+                onChange={handleSearch}
+                className="pl-9 pr-4 w-full"
+              />
+            </div>
+          </div>
+          {filteredProducts.length > 0 ? (
+            filteredProducts.map((product) => (
+              <ProductCard
+                key={product.IdProduct}
+                product={product}
+                onToggleFeatured={handleToggleFeatured}
+                onDelete={handleDeleteProduct}
+                onEdit={handleEditProduct}
+              />
+            ))
+          ) : (
+            <div className="text-center py-8">
+              <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
+              <h3 className="mt-2 text-lg font-medium">No se encontraron productos</h3>
+              <p className="mt-1 text-muted-foreground">
+                {" "}
+                Comience agregando un nuevo producto.{" "}
+              </p>
+              <Button className="mt-4" onClick={() => setIsAddingProduct(true)}>
+                <Plus size={16} className="mr-2" /> Agregar producto
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const ProductCard = ({ product, onToggleFeatured, onDelete, onEdit }) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -27,8 +174,8 @@ const ProductCard = ({ product, onEdit, onDelete, onToggleFeatured }) => {
       <Card className="h-full border overflow-hidden">
         <div className="aspect-video relative bg-muted">
           {product.ImageUrls && product.ImageUrls.length > 0 ? (
-            <img 
-              src={product.ImageUrls[0]} 
+            <img
+              src={product.ImageUrls[0]}
               alt={product.Name}
               className="w-full h-full object-cover"
             />
@@ -67,9 +214,9 @@ const ProductCard = ({ product, onEdit, onDelete, onToggleFeatured }) => {
           <Button size="sm" variant="outline" className="flex-1" onClick={() => onEdit(product)}>
             <Edit size={14} className="mr-1" /> Editar
           </Button>
-          <Button 
-            size="sm" 
-            variant={product.IsFeatured ? "default" : "outline"} 
+          <Button
+            size="sm"
+            variant={product.IsFeatured ? "default" : "outline"}
             className={`flex-1 ${product.IsFeatured ? "bg-amber-500 hover:bg-amber-600" : ""}`}
             onClick={() => onToggleFeatured(product)}
           >
@@ -85,20 +232,64 @@ const ProductCard = ({ product, onEdit, onDelete, onToggleFeatured }) => {
 };
 
 const ProductForm = ({ product, onSave, onCancel }) => {
-  const [formData, setFormData] = useState(product || {
-    Name: "",
-    Description: "",
-    Price: 0,
-    PriceType: "Precio por metro cuadrado (m²)",
-    IdCategory: "",
-    IsFeatured: false,
-    Size: "",
-    ImageUrls: []
-  });
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const categoriesRef = dbRef(database, "Category");
+    onValue(categoriesRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const categoryList = Object.keys(data).map((key) => ({
+          IdCategory: key,
+          ...data[key],
+        }));
+        setCategories(categoryList);
+      } else {
+        setCategories([]);
+      }
+    });
+  }, []);
+
+  const [formData, setFormData] = useState(
+    product || {
+      Name: "",
+      Description: "",
+      Price: 0,
+      PriceType: "",
+      IdCategory: "",
+      IsFeatured: false,
+      Size: "",
+      ImageUrls: [],
+    }
+  );
+  const [imageFiles, setImageFiles] = useState([]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageUpload = async (e) => {
+    const files: any = Array.from(e.target.files); // Convertir FileList a Array
+    const uploadedUrls = [];
+
+    for (const file of files) {
+      // Crear una referencia en Firebase Storage
+      const storageReference = storageRef(storage, `product-images/${file.name}`);
+
+      // Subir el archivo a Firebase Storage
+      await uploadBytes(storageReference, file);
+
+      // Obtener la URL de descarga
+      const downloadUrl = await getDownloadURL(storageReference);
+      uploadedUrls.push(downloadUrl);
+    }
+
+    // Actualizar el estado con las nuevas URLs de las imágenes
+    setFormData((prev) => ({
+      ...prev,
+      ImageUrls: [...prev.ImageUrls, ...uploadedUrls],
+    }));
   };
 
   const handleSubmit = (e) => {
@@ -115,293 +306,122 @@ const ProductForm = ({ product, onSave, onCancel }) => {
       className="bg-card rounded-lg shadow-lg border overflow-hidden"
     >
       <div className="p-6">
-        <h3 className="text-lg font-medium mb-4">
-          {product ? "Editar producto" : "Agregar nuevo producto"}
-        </h3>
+        <h3 className="text-lg font-medium mb-4">{product ? "Editar producto" : "Agregar nuevo producto"}</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="Name">Nombre</Label>
-              <Input
-                id="Name"
-                name="Name"
-                value={formData.Name}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="IdCategory">Category ID</Label>
-              <Input
+          <div>
+            <Label htmlFor="IdCategory">Categoría</Label>
+            {categories && categories.length > 0 ? (
+              <select
                 id="IdCategory"
                 name="IdCategory"
                 value={formData.IdCategory}
                 onChange={handleChange}
+                className="w-full border rounded-md px-3 py-2"
                 required
-              />
-            </div>
+              >
+                <option value="">Selecciona una categoría</option>
+                {categories.map((category) => (
+                  <option key={category.IdCategory} value={category.IdCategory}>
+                    {category.Name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p>No hay categorías disponibles.</p>
+            )}
           </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="Description">Descripción</Label>
+          <div>
+            <Label htmlFor="Name">Nombre</Label>
             <Input
-              id="Description"
-              name="Description"
-              value={formData.Description}
+              id="Name"
+              name="Name"
+              type="text"
+              placeholder="Nombre del producto"
+              value={formData.Name}
               onChange={handleChange}
               required
             />
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="Price">Precio</Label>
-              <Input
-                id="Price"
-                name="Price"
-                type="number"
-                value={formData.Price}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="PriceType">Tipo</Label>
-              <Input
-                id="PriceType"
-                name="PriceType"
-                value={formData.PriceType}
-                onChange={handleChange}
-              />
-            </div>
+          <div>
+            <Label htmlFor="Description">Descripción</Label>
+            <Input
+              id="Description"
+              name="Description"
+              type="text"
+              placeholder="Descripción del producto"
+              value={formData.Description}
+              onChange={handleChange}
+            />
           </div>
-          
-          <div className="space-y-2">
+          <div>
+            <Label htmlFor="Price">Precio</Label>
+            <Input
+              id="Price"
+              name="Price"
+              type="number"
+              placeholder="Precio del producto"
+              value={formData.Price}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div>
             <Label htmlFor="Size">Tamaño</Label>
             <Input
               id="Size"
               name="Size"
+              type="text"
+              placeholder="Tamaño del producto"
               value={formData.Size}
               onChange={handleChange}
             />
           </div>
-          
-          <div className="flex items-center space-x-2">
-            <Label htmlFor="IsFeatured" className="flex items-center space-x-2 cursor-pointer">
-              <input
-                id="IsFeatured"
-                name="IsFeatured"
-                type="checkbox"
-                className="rounded border-gray-300 text-primary"
-                checked={formData.IsFeatured}
-                onChange={(e) => setFormData(prev => ({ ...prev, IsFeatured: e.target.checked }))}
-              />
-              <span>Producto destacado</span>
-            </Label>
+          <div>
+            <Label htmlFor="PriceType">Tipo de precio</Label>
+            <select
+              id="PriceType"
+              name="PriceType"
+              value={formData.PriceType}
+              onChange={handleChange}
+              className="w-full border rounded-md px-3 py-2"
+              required
+            >
+              <option value="">Selecciona un tipo de precio</option>
+              <option value="Precio por metro cuadrado (m²)">Precio por metro cuadrado (m²)</option>
+              <option value="Precio por unidad">Precio por unidad</option>
+              <option value="Precio por rollo">Precio por rollo</option>
+              <option value="Precio por lote">Precio por lote</option>
+              <option value="Precio por instalación incluida">Precio por instalación incluida</option>
+              <option value="Precio por metro lineal">Precio por metro lineal</option>
+              <option value="Precio por proyecto">Precio por proyecto</option>
+              <option value="Precio al mayor">Precio al mayor</option>
+              <option value="Precio promocional">Precio promocional</option>
+              <option value="Precio por zona">Precio por zona</option>
+              <option value="Precio con transporte incluido">Precio con transporte incluido</option>
+              <option value="Precio por acabado">Precio por acabado</option>
+              <option value="Precio por resistencia">Precio por resistencia</option>
+            </select>
           </div>
-          
+          <div>
+            <Label htmlFor="images">Imágenes</Label>
+            <Input
+              id="images"
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="w-full"
+            />
+          </div>
           <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancelar
             </Button>
-            <Button type="submit">
-              Guardar producto
-            </Button>
+            <Button type="submit">Guardar producto</Button>
           </div>
         </form>
       </div>
     </motion.div>
-  );
-};
-
-const Products = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isAddingProduct, setIsAddingProduct] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
-  const [activeTab, setActiveTab] = useState("all");
-  
-  // Mock data
-  const mockProducts = [
-    {
-      IdProduct: "PF194",
-      Name: "Piso LVT autoadhesivo",
-      Description: "1.5 ML de espesor\nModelo: Roble Canadá\nCaja por: 5 mt2",
-      IdCategory: "-OF2eKq0Ppqc4DG1lyYm",
-      Price: 13500,
-      PriceType: "Precio por metro cuadrado (m²)",
-      Size: "1.5 ML de espesor",
-      IsFeatured: true,
-      Category: {
-        IdCategory: "-OF2eKq0Ppqc4DG1lyYm",
-        Name: "Pisos LVT",
-        IsFeatured: false
-      },
-      ImageUrls: [
-        "https://firebasestorage.googleapis.com/v0/b/home-pisos-vinilicos.appspot.com/o/products%2FPF194%2FPF194-1.jpg?alt=media&token=fc23843d-ff9e-46c9-a2d4-8da4f5fe419a"
-      ]
-    },
-    {
-      IdProduct: "PF195",
-      Name: "Piso Flotante Melamina",
-      Description: "8 mm de espesor\nModelo: Nogal Clásico\nCaja por: 2.4 mt2",
-      IdCategory: "-O9tTaqfGlJY97JVwQaa",
-      Price: 10800,
-      PriceType: "Precio por metro cuadrado (m²)",
-      Size: "8 mm de espesor",
-      IsFeatured: false,
-      Category: {
-        IdCategory: "-O9tTaqfGlJY97JVwQaa",
-        Name: "Pisos Flotantes Melamina",
-        IsFeatured: false
-      },
-      ImageUrls: []
-    }
-  ];
-  
-  const [products, setProducts] = useState(mockProducts);
-  
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-  };
-  
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.Name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          product.Description.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    if (activeTab === "all") return matchesSearch;
-    if (activeTab === "featured") return matchesSearch && product.IsFeatured;
-    
-    return false;
-  });
-  
-  const handleAddProduct = () => {
-    setEditingProduct(null);
-    setIsAddingProduct(true);
-  };
-  
-  const handleEditProduct = (product) => {
-    setEditingProduct(product);
-    setIsAddingProduct(true);
-  };
-  
-  const handleDeleteProduct = (product) => {
-    if (window.confirm(`¿Estás seguro de que quieres eliminar ${product.Name}?`)) {
-      setProducts(prevProducts => 
-        prevProducts.filter(p => p.IdProduct !== product.IdProduct)
-      );
-    }
-  };
-  
-  const handleToggleFeatured = (product) => {
-    setProducts(prevProducts => 
-      prevProducts.map(p => 
-        p.IdProduct === product.IdProduct 
-          ? { ...p, IsFeatured: !p.IsFeatured } 
-          : p
-      )
-    );
-  };
-  
-  const handleSaveProduct = (productData) => {
-    if (editingProduct) {
-      // Update existing product
-      setProducts(prevProducts => 
-        prevProducts.map(p => 
-          p.IdProduct === editingProduct.IdProduct 
-            ? { ...productData, IdProduct: editingProduct.IdProduct } 
-            : p
-        )
-      );
-    } else {
-      // Add new product
-      const newProduct = {
-        ...productData,
-        IdProduct: `P${Date.now()}`
-      };
-      setProducts(prevProducts => [...prevProducts, newProduct]);
-    }
-    
-    setIsAddingProduct(false);
-    setEditingProduct(null);
-  };
-  
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Productos</h1>
-          <p className="text-muted-foreground">
-          Gestione la información de sus productos.
-          </p>
-        </div>
-        <Button className="sm:self-start" onClick={handleAddProduct}>
-          <Plus size={16} className="mr-2" /> Agregar producto
-        </Button>
-      </div>
-      
-      {isAddingProduct ? (
-        <ProductForm 
-          product={editingProduct}
-          onSave={handleSaveProduct}
-          onCancel={() => {
-            setIsAddingProduct(false);
-            setEditingProduct(null);
-          }}
-        />
-      ) : (
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row justify-between gap-4">
-            <Tabs 
-              defaultValue="all" 
-              value={activeTab} 
-              onValueChange={setActiveTab}
-              className="w-full sm:w-auto"
-            >
-              <TabsList>
-                <TabsTrigger value="all">Todos</TabsTrigger>
-                <TabsTrigger value="featured">Destacado</TabsTrigger>
-              </TabsList>
-            </Tabs>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
-              <Input
-                placeholder="Buscar productos..."
-                value={searchTerm}
-                onChange={handleSearch}
-                className="pl-9 pr-4 w-full"
-              />
-            </div>
-          </div>
-          
-          {filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredProducts.map(product => (
-                <ProductCard 
-                  key={product.IdProduct} 
-                  product={product}
-                  onEdit={handleEditProduct}
-                  onDelete={handleDeleteProduct}
-                  onToggleFeatured={handleToggleFeatured}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-2 text-lg font-medium">No se encontraron productos</h3>
-              <p className="mt-1 text-muted-foreground">
-                {searchTerm 
-                  ? "Try adjusting your search term." 
-                  : "Get started by adding a new product."}
-              </p>
-              <Button className="mt-4" onClick={handleAddProduct}>
-                <Plus size={16} className="mr-2" /> Agregar producto
-              </Button>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
   );
 };
 

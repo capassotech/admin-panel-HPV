@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -6,28 +5,37 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lock, User } from "lucide-react";
+import { auth } from "@/firebase"; // Importa la instancia de autenticación
+import { signInWithEmailAndPassword } from "firebase/auth"; // Método de inicio de sesión
 
 interface LoginProps {
   onLogin: () => void;
 }
 
 const Login = ({ onLogin }: LoginProps) => {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
+    setError("");
+
+    try {
+      // Intenta iniciar sesión con Firebase
+      await signInWithEmailAndPassword(auth, email, password);
       setIsLoading(false);
-      // In a real app, validate credentials
-      if (username && password) {
-        onLogin();
+      onLogin(); // Llama al callback de inicio de sesión exitoso
+    } catch (err: any) {
+      setIsLoading(false);
+      if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password") {
+        setError("Correo electrónico o contraseña incorrectos.");
+      } else {
+        setError("Ocurrió un error inesperado. Por favor, inténtalo de nuevo.");
       }
-    }, 800);
+    }
   };
 
   return (
@@ -42,24 +50,25 @@ const Login = ({ onLogin }: LoginProps) => {
           <CardHeader className="space-y-2 text-center">
             <CardTitle className="text-2xl font-medium">Iniciar Sesión</CardTitle>
             <CardDescription>
-            Ingrese sus credenciales para acceder al panel de administración
+              Ingrese sus credenciales para acceder al panel de administración
             </CardDescription>
+            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="username">Correo Electrónico</Label>
+                <Label htmlFor="email">Correo Electrónico</Label>
                 <div className="relative">
                   <span className="absolute left-3 top-3 text-gray-400">
                     <User size={18} />
                   </span>
                   <Input
-                    id="username"
-                    type="text"
-                    placeholder="Introduce tu nombre de correo electrónico"
+                    id="email"
+                    type="email"
+                    placeholder="Introduce tu correo electrónico"
                     className="pl-10"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </div>
