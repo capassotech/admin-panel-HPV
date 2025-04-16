@@ -1,32 +1,52 @@
-
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
-  Card, CardContent, CardDescription, CardFooter,
-  CardHeader, CardTitle
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Plus, Search, Edit, Trash2, DollarSign,
-  FileText, ArrowUpDown, CheckCircle
+  Plus,
+  DollarSign,
+  FileText,
+  ArrowUpDown,
+  CheckCircle,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { database } from "@/firebase";
+import { ref as dbRef, get, onValue, push, update } from "firebase/database";
 
 const BulkPriceUpdateForm = ({ onSubmit, onCancel }) => {
   const [percentage, setPercentage] = useState("");
   const [categories, setCategories] = useState([]);
+  const [availableCategories, setAvailableCategories] = useState([]);
 
-  // Mock categories data
-  const mockCategories = [
-    { id: "-OF2eKq0Ppqc4DG1lyYm", name: "Pisos LVT" },
-    { id: "-O9tTaqfGlJY97JVwQaa", name: "Pisos Flotantes Melamina" }
-  ];
+  // Cargar categorías desde Firebase
+  useEffect(() => {
+    const categoriesRef = dbRef(database, "Category");
+    onValue(categoriesRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const categoryList = Object.keys(data).map((key) => ({
+          id: key,
+          name: data[key].Name,
+        }));
+        setAvailableCategories(categoryList);
+      } else {
+        setAvailableCategories([]);
+      }
+    });
+  }, []);
 
   const handleCategoryToggle = (categoryId) => {
     if (categories.includes(categoryId)) {
-      setCategories(categories.filter(id => id !== categoryId));
+      setCategories(categories.filter((id) => id !== categoryId));
     } else {
       setCategories([...categories, categoryId]);
     }
@@ -37,7 +57,7 @@ const BulkPriceUpdateForm = ({ onSubmit, onCancel }) => {
     onSubmit({
       percentage: parseFloat(percentage),
       categories,
-      date: new Date().toISOString()
+      date: new Date().toISOString(),
     });
   };
 
@@ -50,9 +70,7 @@ const BulkPriceUpdateForm = ({ onSubmit, onCancel }) => {
       className="bg-card rounded-lg shadow-lg border overflow-hidden"
     >
       <div className="p-6">
-        <h3 className="text-lg font-medium mb-4">
-          Actualización de precios
-        </h3>
+        <h3 className="text-lg font-medium mb-4">Actualización de precios</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="percentage">Cambio porcentual (%)</Label>
@@ -64,7 +82,7 @@ const BulkPriceUpdateForm = ({ onSubmit, onCancel }) => {
                 value={percentage}
                 onChange={(e) => setPercentage(e.target.value)}
                 className="flex-1"
-                placeholder="e.g. 5 for 5% increase, -5 for 5% decrease"
+                placeholder="Ej. 5 para un aumento del 5%, -5 para una disminución del 5%"
                 required
               />
               <span className="flex items-center justify-center px-4 border border-l-0 rounded-r-md bg-muted">
@@ -72,14 +90,13 @@ const BulkPriceUpdateForm = ({ onSubmit, onCancel }) => {
               </span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Introduzca un valor positivo para aumentar los precios, negativo para disminuirlos.
+              Introduzca un valor positivo para aumentar los precios o negativo para disminuirlos.
             </p>
           </div>
-
           <div className="space-y-2">
             <Label>Aplicar a categorías (opcional)</Label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-              {mockCategories.map(category => (
+              {availableCategories.map((category) => (
                 <div
                   key={category.id}
                   onClick={() => handleCategoryToggle(category.id)}
@@ -88,10 +105,12 @@ const BulkPriceUpdateForm = ({ onSubmit, onCancel }) => {
                     : "hover:border-muted-foreground/30"
                     }`}
                 >
-                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center mr-2 ${categories.includes(category.id)
-                    ? "border-primary text-primary"
-                    : "border-muted-foreground/50"
-                    }`}>
+                  <div
+                    className={`w-5 h-5 rounded-full border flex items-center justify-center mr-2 ${categories.includes(category.id)
+                      ? "border-primary text-primary"
+                      : "border-muted-foreground/50"
+                      }`}
+                  >
                     {categories.includes(category.id) && <CheckCircle size={14} />}
                   </div>
                   <span className="text-sm">{category.name}</span>
@@ -99,10 +118,9 @@ const BulkPriceUpdateForm = ({ onSubmit, onCancel }) => {
               ))}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-
+              Deje esta sección en blanco para aplicar a todos los productos.
             </p>
           </div>
-
           <div className="bg-amber-50 p-3 rounded-md border border-amber-200 text-amber-800 mt-4">
             <h4 className="text-sm font-medium flex items-center">
               <DollarSign size={16} className="mr-1" /> Advertencia de actualización de precios
@@ -115,14 +133,11 @@ const BulkPriceUpdateForm = ({ onSubmit, onCancel }) => {
               Esto no se puede revertir automáticamente.
             </p>
           </div>
-
           <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancelar
             </Button>
-            <Button type="submit">
-              Actualizar precios
-            </Button>
+            <Button type="submit">Actualizar precios</Button>
           </div>
         </form>
       </div>
@@ -131,12 +146,31 @@ const BulkPriceUpdateForm = ({ onSubmit, onCancel }) => {
 };
 
 const PriceHistoryCard = ({ history, index }) => {
+  const [categories, setCategories] = useState([]);
+  const [availableCategories, setAvailableCategories] = useState([]);
+
+  useEffect(() => {
+    const categoriesRef = dbRef(database, "Category");
+    onValue(categoriesRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const categoryList = Object.keys(data).map((key) => ({
+          id: key,
+          name: data[key].Name,
+        }));
+        setAvailableCategories(categoryList);
+      } else {
+        setAvailableCategories([]);
+      }
+    });
+  }, []);
+
   const formattedDate = new Date(history.date).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 
   return (
@@ -149,24 +183,27 @@ const PriceHistoryCard = ({ history, index }) => {
       <Card className="h-full border overflow-hidden">
         <CardHeader className="p-4">
           <div className="flex items-start gap-2">
-            <div className={`p-2 rounded-full ${history.percentage >= 0
-              ? "bg-emerald-100 text-emerald-700"
-              : "bg-red-100 text-red-700"
-              }`}>
+            <div
+              className={`p-2 rounded-full ${history.percentage >= 0
+                  ? "bg-emerald-100 text-emerald-700"
+                  : "bg-red-100 text-red-700"
+                }`}
+            >
               <ArrowUpDown size={18} />
             </div>
             <div className="flex-1">
               <CardTitle className="text-base flex items-center">
-                <span className={`${history.percentage >= 0
-                  ? "text-emerald-600"
-                  : "text-red-600"
-                  }`}>
-                  {history.percentage >= 0 ? "+" : ""}{history.percentage}%
+                <span
+                  className={`${history.percentage >= 0
+                      ? "text-emerald-600"
+                      : "text-red-600"
+                    }`}
+                >
+                  {history.percentage >= 0 ? "+" : ""}
+                  {history.percentage}%
                 </span>
               </CardTitle>
-              <CardDescription className="text-xs">
-                {formattedDate}
-              </CardDescription>
+              <CardDescription className="text-xs">{formattedDate}</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -174,7 +211,16 @@ const PriceHistoryCard = ({ history, index }) => {
           <div className="mt-2 text-sm">
             {history.categories.length > 0 ? (
               <span>
-                Aplicado a {history.categories.length} categorías
+                Aplicado a las siguientes categorías:{" "}
+                {history.categories.map((categoryId, index) => {
+                  const category = availableCategories.find(cat => cat.id === categoryId);
+                  return category ? (
+                    <span key={categoryId}>
+                      {category.name}
+                      {index < history.categories.length - 1 && ", "}
+                    </span>
+                  ) : null;
+                })}
               </span>
             ) : (
               <span>Se aplica a todos los productos.</span>
@@ -189,56 +235,92 @@ const PriceHistoryCard = ({ history, index }) => {
 const PriceUpdates = () => {
   const [isUpdatingPrices, setIsUpdatingPrices] = useState(false);
   const [activeTab, setActiveTab] = useState("bulk");
+  const [priceHistory, setPriceHistory] = useState([]);
 
-  // Mock price history data
-  const [priceHistory, setPriceHistory] = useState([
-    {
-      id: 1,
-      percentage: 5,
-      categories: ["-OF2eKq0Ppqc4DG1lyYm"],
-      date: "2023-05-15T14:30:00.000Z"
-    },
-    {
-      id: 2,
-      percentage: -2.5,
-      categories: [],
-      date: "2023-04-01T10:15:00.000Z"
+  // Cargar historial de actualizaciones desde Firebase
+  useEffect(() => {
+    const priceHistoryRef = dbRef(database, "PriceUpdates");
+    onValue(priceHistoryRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const historyList = Object.keys(data).map((key) => ({
+          id: key,
+          ...data[key],
+        }));
+        setPriceHistory(historyList.reverse());
+      } else {
+        setPriceHistory([]);
+      }
+    });
+  }, []);
+
+  const handleBulkUpdate = async (updateData) => {
+    try {
+      // Referencia a los productos en Firebase
+      const productsRef = dbRef(database, "Product");
+      const snapshot = await get(productsRef);
+      if (!snapshot.exists()) {
+        console.warn("No hay productos disponibles para actualizar.");
+        return;
+      }
+      const products = snapshot.val();
+      const updatedProducts = {};
+
+      // Iterar sobre los productos y aplicar el cambio de precio
+      Object.keys(products).forEach((productId) => {
+        const product = products[productId];
+        if (
+          updateData.categories.length === 0 || // Aplicar a todos si no hay categorías seleccionadas
+          updateData.categories.includes(product.IdCategory) // Filtrar por categorías seleccionadas
+        ) {
+          const newPrice = product.Price + (product.Price * updateData.percentage) / 100;
+          updatedProducts[productId] = {
+            ...product,
+            Price: parseFloat(newPrice.toFixed(2)), // Redondear a 2 decimales
+          };
+        }
+      });
+
+      // Guardar los productos actualizados en Firebase
+      await update(productsRef, updatedProducts);
+
+      // Guardar el registro de la actualización en PriceUpdates
+      const updatesRef = push(dbRef(database, "PriceUpdates"));
+      await update(updatesRef, updateData);
+
+      // Actualizar el estado local del historial
+      setPriceHistory([
+        {
+          id: updatesRef.key,
+          ...updateData,
+        },
+        ...priceHistory,
+      ]);
+
+      setIsUpdatingPrices(false);
+      console.log("Precios actualizados exitosamente.");
+    } catch (error) {
+      console.error("Error al actualizar los precios:", error);
     }
-  ]);
-
-  const handleBulkUpdate = (updateData) => {
-    // In a real app, this would call an API to update prices
-    console.log("Updating prices:", updateData);
-
-    // Add to history
-    setPriceHistory([
-      {
-        id: Date.now(),
-        ...updateData
-      },
-      ...priceHistory
-    ]);
-
-    setIsUpdatingPrices(false);
   };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Actualizaciones de precios</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Actualizaciones de precios
+          </h1>
           <p className="text-muted-foreground">
             Actualice los precios de los productos de forma masiva.
           </p>
         </div>
       </div>
-
       <Tabs defaultValue="bulk" value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full max-w-md grid-cols-2">
           <TabsTrigger value="bulk">Actualización masiva</TabsTrigger>
           <TabsTrigger value="history">Historial</TabsTrigger>
         </TabsList>
-
         <TabsContent value="bulk" className="mt-4">
           {isUpdatingPrices ? (
             <BulkPriceUpdateForm
@@ -248,17 +330,22 @@ const PriceUpdates = () => {
           ) : (
             <div className="text-center py-12 bg-card border rounded-lg">
               <DollarSign className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-2 text-lg font-medium">Actualizaciones de precios</h3>
+              <h3 className="mt-2 text-lg font-medium">
+                Actualizaciones de precios
+              </h3>
               <p className="mt-1 text-muted-foreground max-w-md mx-auto">
-                Actualice los precios de varios productos a la vez aplicando un cambio porcentual.
+                Actualice los precios de varios productos a la vez aplicando un
+                cambio porcentual.
               </p>
-              <Button className="mt-4" onClick={() => setIsUpdatingPrices(true)}>
+              <Button
+                className="mt-4"
+                onClick={() => setIsUpdatingPrices(true)}
+              >
                 <Plus size={16} className="mr-2" /> Iniciar actualización masiva
               </Button>
             </div>
           )}
         </TabsContent>
-
         <TabsContent value="history" className="mt-4">
           {priceHistory.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -269,7 +356,9 @@ const PriceUpdates = () => {
           ) : (
             <div className="text-center py-12 bg-card border rounded-lg">
               <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-2 text-lg font-medium">Aún no hay actualizaciones de precios</h3>
+              <h3 className="mt-2 text-lg font-medium">
+                Aún no hay actualizaciones de precios
+              </h3>
               <p className="mt-1 text-muted-foreground">
                 Su historial de actualización de precios aparecerá aquí.
               </p>
