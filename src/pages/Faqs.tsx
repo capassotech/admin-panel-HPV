@@ -1,18 +1,29 @@
-
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
-  Card, CardContent, CardDescription, CardFooter,
-  CardHeader, CardTitle
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
-  Plus, Search, Edit, Trash2, HelpCircle,
-  FileText, ArrowUp, ArrowDown
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  HelpCircle,
+  FileText,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { database } from "@/firebase";
+import { ref as dbRef, onValue, push, update, remove } from "firebase/database";
 
 const FaqCard = ({ faq, index, onEdit, onDelete, onMove }) => {
   return (
@@ -29,17 +40,20 @@ const FaqCard = ({ faq, index, onEdit, onDelete, onMove }) => {
               <HelpCircle size={18} className="text-primary" />
             </div>
             <div className="flex-1">
-              <CardTitle className="text-base">{faq.question}</CardTitle>
+              <CardTitle className="text-base">{faq.Question}</CardTitle>
             </div>
           </div>
         </CardHeader>
         <CardContent className="p-4 pt-0">
-          <div className="mt-2 text-sm text-muted-foreground">
-            {faq.answer}
-          </div>
+          <div className="mt-2 text-sm text-muted-foreground">{faq.Answer}</div>
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between gap-2">
-          <Button size="sm" variant="outline" className="flex-1" onClick={() => onEdit(faq)}>
+          <Button
+            size="sm"
+            variant="outline"
+            className="flex-1"
+            onClick={() => onEdit(faq)}
+          >
             <Edit size={14} className="mr-1" /> Editar
           </Button>
           <div className="flex gap-1">
@@ -47,7 +61,7 @@ const FaqCard = ({ faq, index, onEdit, onDelete, onMove }) => {
               size="sm"
               variant="outline"
               className="flex-none"
-              onClick={() => onMove(index, 'up')}
+              onClick={() => onMove(index, "up")}
               disabled={index === 0}
             >
               <ArrowUp size={14} />
@@ -56,7 +70,7 @@ const FaqCard = ({ faq, index, onEdit, onDelete, onMove }) => {
               size="sm"
               variant="outline"
               className="flex-none"
-              onClick={() => onMove(index, 'down')}
+              onClick={() => onMove(index, "down")}
             >
               <ArrowDown size={14} />
             </Button>
@@ -77,14 +91,14 @@ const FaqCard = ({ faq, index, onEdit, onDelete, onMove }) => {
 
 const FaqForm = ({ faq, onSave, onCancel }) => {
   const [formData, setFormData] = useState(faq || {
-    id: null,
-    question: "",
-    answer: ""
+    IdFAQ: null,
+    Question: "",
+    Answer: "",
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e) => {
@@ -102,27 +116,27 @@ const FaqForm = ({ faq, onSave, onCancel }) => {
     >
       <div className="p-6">
         <h3 className="text-lg font-medium mb-4">
-          {faq ? "Edit FAQ" : "Add New FAQ"}
+          {faq ? "Editar FAQ" : "Agregar nueva FAQ"}
         </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="question">Pregunta</Label>
+            <Label htmlFor="Question">Pregunta</Label>
             <Input
-              id="question"
-              name="question"
-              value={formData.question}
+              id="Question"
+              name="Question"
+              value={formData.Question}
               onChange={handleChange}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="answer">Respuesta</Label>
+            <Label htmlFor="Answer">Respuesta</Label>
             <Textarea
-              id="answer"
-              name="answer"
+              id="Answer"
+              name="Answer"
               rows={5}
-              value={formData.answer}
+              value={formData.Answer}
               onChange={handleChange}
               required
             />
@@ -132,9 +146,7 @@ const FaqForm = ({ faq, onSave, onCancel }) => {
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancelar
             </Button>
-            <Button type="submit">
-              Guardar
-            </Button>
+            <Button type="submit">Guardar</Button>
           </div>
         </form>
       </div>
@@ -143,97 +155,82 @@ const FaqForm = ({ faq, onSave, onCancel }) => {
 };
 
 const Faqs = () => {
+  const [faqs, setFaqs] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddingFaq, setIsAddingFaq] = useState(false);
   const [editingFaq, setEditingFaq] = useState(null);
 
-  // Mock data
-  const mockFaqs = [
-    {
-      id: 1,
-      question: "¿Cuál es la diferencia entre pisos LVT y pisos de melamina?",
-      answer: "Los pisos LVT (Luxury Vinyl Tile) son impermeables y más resistentes a la humedad, mientras que los pisos de melamina tienen un aspecto más natural pero son más sensibles al agua."
-    },
-    {
-      id: 2,
-      question: "¿Ofrecen servicio de instalación?",
-      answer: "Sí, ofrecemos servicio de instalación profesional para todos nuestros productos. Puede contratar este servicio al momento de la compra."
-    },
-    {
-      id: 3,
-      question: "¿Cuánto tiempo dura la garantía de los productos?",
-      answer: "La garantía varía según el tipo de producto, pero generalmente ofrecemos entre 5 y 15 años de garantía en nuestros pisos."
-    }
-  ];
+  // Cargar FAQs desde Firebase
+  useEffect(() => {
+    const faqsRef = dbRef(database, "FAQ");
+    onValue(faqsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const faqList = Object.keys(data).map((key) => ({
+          IdFAQ: key,
+          ...data[key],
+        }));
+        setFaqs(faqList);
+      } else {
+        setFaqs([]);
+      }
+    });
+  }, []);
 
-  const [faqs, setFaqs] = useState(mockFaqs);
-
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const filteredFaqs = faqs.filter(faq =>
-    faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    faq.answer.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleAddFaq = () => {
-    setEditingFaq(null);
-    setIsAddingFaq(true);
-  };
-
-  const handleEditFaq = (faq) => {
-    setEditingFaq(faq);
-    setIsAddingFaq(true);
-  };
-
-  const handleDeleteFaq = (faq) => {
-    if (window.confirm("¿Estás seguro de que quieres eliminar esta pregunta?")) {
-      setFaqs(prevFaqs => prevFaqs.filter(f => f.id !== faq.id));
-    }
-  };
-
-  const handleMoveFaq = (index, direction) => {
-    if (direction === 'up' && index > 0) {
-      const newFaqs = [...faqs];
-      [newFaqs[index], newFaqs[index - 1]] = [newFaqs[index - 1], newFaqs[index]];
-      setFaqs(newFaqs);
-    } else if (direction === 'down' && index < faqs.length - 1) {
-      const newFaqs = [...faqs];
-      [newFaqs[index], newFaqs[index + 1]] = [newFaqs[index + 1], newFaqs[index]];
-      setFaqs(newFaqs);
-    }
-  };
-
-  const handleSaveFaq = (faqData) => {
+  // Guardar FAQ (agregar o editar)
+  const handleSaveFaq = async (faqData) => {
     if (editingFaq) {
-      // Update existing faq
-      setFaqs(prevFaqs =>
-        prevFaqs.map(f => f.id === editingFaq.id ? { ...faqData, id: editingFaq.id } : f)
-      );
+      // Editar FAQ existente
+      const faqRef = dbRef(database, `FAQ/${editingFaq.IdFAQ}`);
+      await update(faqRef, faqData);
     } else {
-      // Add new faq
+      // Agregar nueva FAQ
+      const newFaqRef = push(dbRef(database, "FAQ"));
       const newFaq = {
         ...faqData,
-        id: Date.now()
+        IdFAQ: newFaqRef.key,
       };
-      setFaqs(prevFaqs => [...prevFaqs, newFaq]);
+      await update(newFaqRef, newFaq);
     }
-
     setIsAddingFaq(false);
     setEditingFaq(null);
   };
+
+  // Eliminar FAQ
+  const handleDeleteFaq = (faq) => {
+    if (window.confirm("¿Estás seguro de que quieres eliminar esta pregunta?")) {
+      const faqRef = dbRef(database, `FAQ/${faq.IdFAQ}`);
+      remove(faqRef);
+    }
+  };
+
+  // Reordenar FAQs
+  const handleMoveFaq = (index, direction) => {
+    const newFaqs = [...faqs];
+    if (direction === "up" && index > 0) {
+      [newFaqs[index], newFaqs[index - 1]] = [newFaqs[index - 1], newFaqs[index]];
+    } else if (direction === "down" && index < faqs.length - 1) {
+      [newFaqs[index], newFaqs[index + 1]] = [newFaqs[index + 1], newFaqs[index]];
+    }
+    setFaqs(newFaqs);
+  };
+
+  // Filtrar FAQs
+  const filteredFaqs = faqs.filter((faq) =>
+    faq.Question.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    faq.Answer.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Preguntas frecuentes</h1>
-          <p className="text-muted-foreground">
-            Gestionar preguntas frecuentes.
-          </p>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Preguntas frecuentes
+          </h1>
+          <p className="text-muted-foreground">Gestiona tus preguntas frecuentes.</p>
         </div>
-        <Button className="sm:self-start" onClick={handleAddFaq}>
+        <Button className="sm:self-start" onClick={() => setIsAddingFaq(true)}>
           <Plus size={16} className="mr-2" /> Agregar
         </Button>
       </div>
@@ -251,11 +248,14 @@ const Faqs = () => {
         <div className="space-y-4">
           <div className="flex justify-between gap-4">
             <div className="relative w-full max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
+              <Search
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+                size={16}
+              />
               <Input
                 placeholder="Buscar..."
                 value={searchTerm}
-                onChange={handleSearch}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-9 pr-4 w-full"
               />
             </div>
@@ -265,10 +265,13 @@ const Faqs = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredFaqs.map((faq, index) => (
                 <FaqCard
-                  key={faq.id}
+                  key={faq.IdFAQ}
                   faq={faq}
                   index={index}
-                  onEdit={handleEditFaq}
+                  onEdit={(f) => {
+                    setEditingFaq(f);
+                    setIsAddingFaq(true);
+                  }}
                   onDelete={handleDeleteFaq}
                   onMove={handleMoveFaq}
                 />
@@ -277,13 +280,15 @@ const Faqs = () => {
           ) : (
             <div className="text-center py-12">
               <HelpCircle className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-2 text-lg font-medium">No se encontraron preguntas frecuentes</h3>
+              <h3 className="mt-2 text-lg font-medium">
+                No se encontraron preguntas frecuentes
+              </h3>
               <p className="mt-1 text-muted-foreground">
                 {searchTerm
-                  ? "Try adjusting your search term."
-                  : "Get started by adding a new FAQ."}
+                  ? "Intenta ajustar tu término de búsqueda."
+                  : "Comienza agregando una nueva FAQ."}
               </p>
-              <Button className="mt-4" onClick={handleAddFaq}>
+              <Button className="mt-4" onClick={() => setIsAddingFaq(true)}>
                 <Plus size={16} className="mr-2" /> Agregar
               </Button>
             </div>
