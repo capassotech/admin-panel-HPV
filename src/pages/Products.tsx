@@ -164,6 +164,24 @@ const Products = () => {
 };
 
 const ProductCard = ({ product, onToggleFeatured, onDelete, onEdit }) => {
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const categoriesRef = ref(database, "Category");
+    onValue(categoriesRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const categoryList = Object.keys(data).map((key) => ({
+          IdCategory: key,
+          ...data[key],
+        }));
+        setCategories(categoryList);
+      } else {
+        setCategories([]);
+      }
+    });
+  }, []);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -198,12 +216,12 @@ const ProductCard = ({ product, onToggleFeatured, onDelete, onEdit }) => {
           </div>
           <CardDescription className="flex items-center text-xs">
             <Package size={12} className="mr-1" />
-            {product.IdCategory}
+            {categories.find((cat) => cat.IdCategory === product.IdCategory)?.Name || "Sin categoría"}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-4 pt-0">
           <div className="text-sm">
-            <div className="font-medium">${product.Price}</div>
+            <div className="font-medium">${product.Price.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</div>
             <div className="text-xs text-muted-foreground">{product.PriceType}</div>
           </div>
           <div className="mt-2 text-xs text-muted-foreground line-clamp-2">
