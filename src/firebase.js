@@ -5,13 +5,14 @@ import { getDatabase } from "firebase/database";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBiq1JVYxAteGujLGDaP5FDPiROIpZWKBU",
-    authDomain: "hpv-desarrollo.firebaseapp.com",
-    databaseURL: "https://hpv-desarrollo-default-rtdb.firebaseio.com",
-    projectId: "hpv-desarrollo",
-    storageBucket: "hpv-desarrollo.firebasestorage.app",
-    messagingSenderId: "43047314530",
-    appId: "1:43047314530:web:95492d73ec4a9f967a5d3b"
+    apiKey: "AIzaSyDCjcyPOQ_29zyZGtxk13iJdbDsP1AG8bM",
+    authDomain: "home-pisos-vinilicos.firebaseapp.com",
+    databaseURL: "https://home-pisos-vinilicos-default-rtdb.firebaseio.com",
+    projectId: "home-pisos-vinilicos",
+    storageBucket: "home-pisos-vinilicos.appspot.com",
+    messagingSenderId: "392689672279",
+    appId: "1:392689672279:web:81245db39bf2e1dab7c312",
+    measurementId: "G-4HC6MV32X4"
 };
 
 // Inicializa Firebase
