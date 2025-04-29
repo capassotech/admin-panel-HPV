@@ -16,6 +16,8 @@ import { ref as dbRef, onValue, push, update, remove, ref } from "firebase/datab
 import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import Loader from "@/components/ui/loader";
+import { toast } from "sonner";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -23,40 +25,57 @@ const Products = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [activeTab, setActiveTab] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const productsRef = ref(database, "Product");
-    onValue(productsRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const productList = Object.keys(data).map((key) => ({
-          IdProduct: key,
-          ...data[key],
-        }));
-        setProducts(productList);
-      } else {
-        setProducts([]);
-      }
-    });
+    try {
+      const productsRef = ref(database, "Product");
+      onValue(productsRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          const productList = Object.keys(data).map((key) => ({
+            IdProduct: key,
+            ...data[key],
+          }));
+          setProducts(productList);
+        } else {
+          setProducts([]);
+        }
+      });
+    }
+    catch (error) {
+      console.error("Error al cargar los productos:", error);
+      toast.error("Error al cargar los productos. Por favor, inténtelo de nuevo más tarde.");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   // Guardar producto (agregar o editar)
   const handleSaveProduct = async (productData) => {
-    if (editingProduct) {
-      // Editar producto existente
-      const productRef = ref(database, `Product/${editingProduct.IdProduct}`);
-      await update(productRef, productData);
-    } else {
-      // Agregar nuevo producto
-      const newProductRef = push(ref(database, "Product"));
-      const newProduct = {
-        ...productData,
-        IdProduct: newProductRef.key,
-      };
-      await update(newProductRef, newProduct);
+    try {
+      setLoading(true);
+      if (editingProduct) {
+        // Editar producto existente
+        const productRef = ref(database, `Product/${editingProduct.IdProduct}`);
+        await update(productRef, productData);
+      } else {
+        // Agregar nuevo producto
+        const newProductRef = push(ref(database, "Product"));
+        const newProduct = {
+          ...productData,
+          IdProduct: newProductRef.key,
+        };
+        await update(newProductRef, newProduct);
+      }
+      setIsAddingProduct(false);
+      setEditingProduct(null);
+    } catch (error) {
+      console.error("Error al guardar el producto:", error);
+      toast.error("Error al guardar el producto. Por favor, inténtelo de nuevo más tarde.");
+    } finally {
+      setLoading(false);
     }
-    setIsAddingProduct(false);
-    setEditingProduct(null);
   };
 
   const handleSearch = (e) => {
@@ -80,15 +99,35 @@ const Products = () => {
   // Eliminar producto
   const handleDeleteProduct = (product) => {
     if (window.confirm("¿Estás seguro de que deseas eliminar este producto?")) {
-      const productRef = ref(database, `Product/${product.IdProduct}`);
-      remove(productRef);
+      try {
+        setLoading(true);
+        const productRef = ref(database, `Product/${product.IdProduct}`);
+        remove(productRef);
+      } catch (error) {
+        console.error("Error al eliminar el producto:", error);
+        toast.error("Error al eliminar el producto. Por favor, inténtelo de nuevo más tarde.");
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
   const handleToggleFeatured = (product) => {
-    const productRef = ref(database, `Product/${product.IdProduct}`);
-    update(productRef, { IsFeatured: !product.IsFeatured });
+    try {
+      setLoading(true);
+      const productRef = ref(database, `Product/${product.IdProduct}`);
+      update(productRef, { IsFeatured: !product.IsFeatured });
+    } catch (error) {
+      console.error("Error al cambiar el estado de destacado:", error);
+      toast.error("Error al cambiar el estado de destacado. Por favor, inténtelo de nuevo más tarde.");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <div className="space-y-6">
@@ -251,6 +290,7 @@ const ProductCard = ({ product, onToggleFeatured, onDelete, onEdit }) => {
 
 const ProductForm = ({ product, onSave, onCancel }) => {
   const [categories, setCategories] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     const categoriesRef = dbRef(database, "Category");
@@ -288,31 +328,48 @@ const ProductForm = ({ product, onSave, onCancel }) => {
   };
 
   const handleImageUpload = async (e) => {
-    const files: any = Array.from(e.target.files); // Convertir FileList a Array
+    const files: any = Array.from(e.target.files).filter(
+      (file: any) => file.type.startsWith("image/")
+    );
     const uploadedUrls = [];
 
     for (const file of files) {
-      // Crear una referencia en Firebase Storage
-      const storageReference = storageRef(storage, `product-images/${file.name}`);
-
-      // Subir el archivo a Firebase Storage
+      const uniqueFileName = `${Date.now()}-${product?.Name || "producto"}`;
+      const storageReference = storageRef(storage, `products/${uniqueFileName}`);
       await uploadBytes(storageReference, file);
-
-      // Obtener la URL de descarga
       const downloadUrl = await getDownloadURL(storageReference);
       uploadedUrls.push(downloadUrl);
     }
 
-    // Actualizar el estado con las nuevas URLs de las imágenes
+    // Actualizar estado local con las URLs descargadas
     setFormData((prev) => ({
       ...prev,
-      ImageUrls: [...prev.ImageUrls, ...uploadedUrls],
+      ImageUrls: [...(prev.ImageUrls || []), ...uploadedUrls],
     }));
+
+    return uploadedUrls; // ✅ Devolver las URLs
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSave(formData);
+    const fileInput: any = document.getElementById("images");
+
+    setIsUploading(true);
+
+    let finalData = { ...formData };
+
+    if (fileInput && fileInput.files.length > 0) {
+      const uploadedUrls = await handleImageUpload({ target: fileInput });
+      finalData = {
+        ...finalData,
+        ImageUrls: [...(finalData.ImageUrls || []), ...uploadedUrls],
+      };
+    }
+
+    onSave(finalData); // ✅ Ahora sí tiene las URLs actualizadas
+    setIsUploading(false);
+
+    if (fileInput) fileInput.value = "";
   };
 
   return (
@@ -427,7 +484,11 @@ const ProductForm = ({ product, onSave, onCancel }) => {
               type="file"
               multiple
               accept="image/*"
-              onChange={handleImageUpload}
+              onChange={(e) => {
+                if (e.target.files.length > 0) {
+                  handleImageUpload(e);
+                }
+              }}
               className="w-full"
             />
           </div>
@@ -435,7 +496,9 @@ const ProductForm = ({ product, onSave, onCancel }) => {
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancelar
             </Button>
-            <Button type="submit">Guardar producto</Button>
+            <Button type="submit" disabled={isUploading}>
+              {isUploading ? "Guardando..." : "Guardar producto"}
+            </Button>
           </div>
         </form>
       </div>
