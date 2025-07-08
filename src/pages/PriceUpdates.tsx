@@ -185,8 +185,8 @@ const PriceHistoryCard = ({ history, index }) => {
           <div className="flex items-start gap-2">
             <div
               className={`p-2 rounded-full ${history.percentage >= 0
-                  ? "bg-emerald-100 text-emerald-700"
-                  : "bg-red-100 text-red-700"
+                ? "bg-emerald-100 text-emerald-700"
+                : "bg-red-100 text-red-700"
                 }`}
             >
               <ArrowUpDown size={18} />
@@ -195,8 +195,8 @@ const PriceHistoryCard = ({ history, index }) => {
               <CardTitle className="text-base flex items-center">
                 <span
                   className={`${history.percentage >= 0
-                      ? "text-emerald-600"
-                      : "text-red-600"
+                    ? "text-emerald-600"
+                    : "text-red-600"
                     }`}
                 >
                   {history.percentage >= 0 ? "+" : ""}
@@ -269,11 +269,20 @@ const PriceUpdates = () => {
       // Iterar sobre los productos y aplicar el cambio de precio
       Object.keys(products).forEach((productId) => {
         const product = products[productId];
+
+        // Validar que product.IdCategory exista y Price sea un número
         if (
-          updateData.categories.length === 0 || // Aplicar a todos si no hay categorías seleccionadas
-          updateData.categories.includes(product.IdCategory) // Filtrar por categorías seleccionadas
+          updateData.categories.length === 0 ||
+          updateData.categories.includes(product.IdCategory)
         ) {
-          const newPrice = product.Price + (product.Price * updateData.percentage) / 100;
+          // Asegurarse de que product.Price sea un número
+          const originalPrice = parseFloat(product.Price);
+          if (isNaN(originalPrice)) {
+            console.warn(`Precio inválido en producto ${productId}:`, product.Price);
+            return; // Opcional: omitir este producto si el precio no es válido
+          }
+
+          const newPrice = originalPrice + (originalPrice * updateData.percentage) / 100;
           updatedProducts[productId] = {
             ...product,
             Price: parseFloat(newPrice.toFixed(2)), // Redondear a 2 decimales
