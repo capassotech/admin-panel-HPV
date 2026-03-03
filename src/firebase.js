@@ -1,21 +1,20 @@
-// firebase.js
+// firebase.js - QA vs PROD según Vite (development = QA, production = PROD)
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getDatabase } from "firebase/database";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyDCjcyPOQ_29zyZGtxk13iJdbDsP1AG8bM",
-    authDomain: "home-pisos-vinilicos.firebaseapp.com",
-    databaseURL: "https://home-pisos-vinilicos-default-rtdb.firebaseio.com",
-    projectId: "home-pisos-vinilicos",
-    storageBucket: "home-pisos-vinilicos.appspot.com",
-    messagingSenderId: "392689672279",
-    appId: "1:392689672279:web:81245db39bf2e1dab7c312",
-    measurementId: "G-4HC6MV32X4"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-// Inicializa Firebase
 const app = initializeApp(firebaseConfig);
 
 // Exporta la instancia de autenticación
