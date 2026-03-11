@@ -3,7 +3,7 @@ import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu, X, Home, Package, Folders, HelpCircle,
-  Share2, DollarSign, LogOut
+  Share2, DollarSign, LogOut, ShoppingCart
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -42,6 +42,7 @@ const AdminLayout = ({ onLogout }: AdminLayoutProps) => {
   const navigation = [
     { name: "Dashboard", path: "/dashboard", icon: Home },
     { name: "Productos", path: "/productos", icon: Package },
+    { name: "Pedidos", path: "/pedidos", icon: ShoppingCart },
     { name: "Categorías", path: "/categorias", icon: Folders },
     { name: "Preguntas frecuentes", path: "/faqs", icon: HelpCircle },
     { name: "Redes sociales", path: "/social", icon: Share2 },

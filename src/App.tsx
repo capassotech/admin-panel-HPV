@@ -14,6 +14,7 @@ import Categories from "./pages/Categories";
 import Faqs from "./pages/Faqs";
 import SocialNetworks from "./pages/SocialNetworks";
 import PriceUpdates from "./pages/PriceUpdates";
+import Orders from "./pages/Orders";
 import NotFound from "./pages/NotFound";
 
 // Layout
@@ -78,6 +79,7 @@ const App = () => {
               <Route path="faqs" element={<Faqs />} />
               <Route path="social" element={<SocialNetworks />} />
               <Route path="precios" element={<PriceUpdates />} />
+              <Route path="pedidos" element={<Orders />} />
             </Route>
             
             <Route path="*" element={<NotFound />} />
