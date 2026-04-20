@@ -65,6 +65,12 @@ const AdminLayout = ({ onLogout }: AdminLayoutProps) => {
   };
 
   const getPageTitle = () => {
+    if (location.pathname === "/productos/nuevo") {
+      return "Agregar producto";
+    }
+    if (location.pathname.startsWith("/productos/") && location.pathname.endsWith("/editar")) {
+      return "Editar producto";
+    }
     const currentRoute = navigation.find(item => item.path === location.pathname);
     return currentRoute ? currentRoute.name : "Admin Panel";
   };
@@ -187,18 +193,14 @@ const AdminLayout = ({ onLogout }: AdminLayoutProps) => {
           </div>
         </header>
 
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={location.pathname}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            variants={pageTransition}
-            className="flex-1 p-4 md:p-6 overflow-auto"
-          >
-            <Outlet />
-          </motion.div>
-        </AnimatePresence>
+        <motion.div
+          initial="initial"
+          animate="animate"
+          variants={pageTransition}
+          className="flex-1 p-4 md:p-6 overflow-auto"
+        >
+          <Outlet />
+        </motion.div>
       </main>
     </div>
   );

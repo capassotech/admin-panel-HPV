@@ -4,13 +4,17 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 // Pages
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
+import NewProduct from "./pages/NewProduct";
+import EditProduct from "./pages/EditProduct";
 import Categories from "./pages/Categories";
+import NewCategory from "./pages/NewCategory";
+import EditCategory from "./pages/EditCategory";
 import Faqs from "./pages/Faqs";
 import SocialNetworks from "./pages/SocialNetworks";
 import PriceUpdates from "./pages/PriceUpdates";
@@ -23,15 +27,9 @@ import AdminLayout from "./components/layouts/AdminLayout";
 const queryClient = new QueryClient();
 
 const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  
-  // Check for authentication
-  useEffect(() => {
-    const authStatus = localStorage.getItem("isAuthenticated");
-    if (authStatus === "true") {
-      setIsAuthenticated(true);
-    }
-  }, []);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return localStorage.getItem("isAuthenticated") === "true";
+  });
 
   // Mock auth functions - would be replaced with real auth in a complete implementation
   const handleLogin = () => {
@@ -75,6 +73,10 @@ const App = () => {
               <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="productos" element={<Products />} />
+              <Route path="productos/nuevo" element={<NewProduct />} />
+              <Route path="productos/:productId/editar" element={<EditProduct />} />
+              <Route path="categorias/nuevo" element={<NewCategory />} />
+              <Route path="categorias/:categoryId/editar" element={<EditCategory />} />
               <Route path="categorias" element={<Categories />} />
               <Route path="faqs" element={<Faqs />} />
               <Route path="social" element={<SocialNetworks />} />
