@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, XCircle, Link, Unlink } from "lucide-react";
+import { CheckCircle2, XCircle, Link, Unlink, User, Mail } from "lucide-react";
 
 interface AccountInfo {
   userId: string;
@@ -14,42 +14,11 @@ interface AccountInfo {
 interface ConnectionStatus {
   connected: boolean;
   source: "oauth" | "env" | "none";
-  userId?: string;
   savedAt?: string;
   accountInfo?: AccountInfo | null;
 }
 
 const API_URL = import.meta.env.VITE_API_URL || "https://home-pisos-backend.onrender.com";
-
-const AccountDetails = ({ status }: { status: ConnectionStatus | null }) => {
-  if (!status) return null;
-
-  if (status.source === "none") {
-    return <span>No hay ninguna cuenta de Mercado Pago conectada.</span>;
-  }
-
-  const info = status.accountInfo;
-  const lines: string[] = [];
-  if (info?.name) lines.push(info.name);
-  if (info?.email) lines.push(info.email);
-  if (info?.userId) lines.push(`ID: ${info.userId}`);
-
-  if (status.connected) {
-    return (
-      <span>
-        {lines.join(" · ")}
-        {status.savedAt && ` · Vinculada el ${new Date(status.savedAt).toLocaleDateString("es-AR")}`}
-      </span>
-    );
-  }
-
-  return (
-    <span>
-      <span className="font-medium text-amber-600">Cuenta de respaldo (variable de entorno)</span>
-      {lines.length > 0 && <> · {lines.join(" · ")}</>}
-    </span>
-  );
-};
 
 const MercadoPago = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -117,54 +86,82 @@ const MercadoPago = () => {
     }
   };
 
+  const info = status?.accountInfo;
+  const isOAuth = status?.connected;
+  const isFallback = !status?.connected && status?.source === "env";
+  const isNone = status?.source === "none";
+
   return (
     <div className="space-y-6 max-w-lg">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Mercado Pago</h1>
-        <p className="text-muted-foreground">Conectá la cuenta de Mercado Pago para recibir pagos en la tienda.</p>
+        <p className="text-muted-foreground">
+          Conectá la cuenta de Mercado Pago para recibir pagos en la tienda.
+        </p>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base font-medium">
             {loading ? (
-              "Verificando conexión..."
-            ) : status?.connected ? (
-              <>
-                <CheckCircle2 className="text-green-500 h-5 w-5" />
-                Cuenta conectada via OAuth
-              </>
-            ) : status?.source === "env" ? (
-              <>
-                <CheckCircle2 className="text-amber-500 h-5 w-5" />
-                Cuenta de respaldo activa
-              </>
+              <span className="text-muted-foreground">Verificando...</span>
+            ) : isOAuth ? (
+              <><CheckCircle2 className="text-green-500 h-5 w-5 shrink-0" /> Cuenta conectada</>
+            ) : isFallback ? (
+              <><CheckCircle2 className="text-amber-500 h-5 w-5 shrink-0" /> Cuenta de respaldo</>
             ) : (
-              <>
-                <XCircle className="text-destructive h-5 w-5" />
-                Sin cuenta conectada
-              </>
+              <><XCircle className="text-destructive h-5 w-5 shrink-0" /> Sin cuenta conectada</>
             )}
           </CardTitle>
-          <CardDescription>
-            {loading ? "Consultando estado..." : <AccountDetails status={status} />}
-          </CardDescription>
         </CardHeader>
 
-        <CardContent className="flex flex-col gap-3">
-          {!loading && !status?.connected && (
+        <CardContent className="space-y-4">
+          {!loading && (isOAuth || isFallback) && (
+            <div className="rounded-lg bg-muted/50 p-4 space-y-2">
+              {info?.name && (
+                <div className="flex items-center gap-2 text-sm">
+                  <User className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span>{info.name}</span>
+                </div>
+              )}
+              {info?.email && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span>{info.email}</span>
+                </div>
+              )}
+              {isOAuth && status?.savedAt && (
+                <p className="text-xs text-muted-foreground pt-1">
+                  Vinculada el {new Date(status.savedAt).toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })}
+                </p>
+              )}
+              {isFallback && (
+                <p className="text-xs text-muted-foreground pt-1">
+                  Esta es la cuenta configurada por defecto. Podés reemplazarla conectando la cuenta del cliente.
+                </p>
+              )}
+            </div>
+          )}
+
+          {!loading && isNone && (
+            <p className="text-sm text-muted-foreground">
+              No hay ninguna cuenta configurada. Conectá una cuenta para poder recibir pagos.
+            </p>
+          )}
+
+          {!loading && !isOAuth && (
             <Button onClick={handleConnect} disabled={connecting} className="w-full sm:w-auto">
               <Link className="mr-2 h-4 w-4" />
               {connecting ? "Redirigiendo a Mercado Pago..." : "Conectar cuenta de Mercado Pago"}
             </Button>
           )}
 
-          {!loading && status?.connected && (
+          {!loading && isOAuth && (
             <Button
-              variant="destructive"
+              variant="outline"
               onClick={handleDisconnect}
               disabled={disconnecting}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto text-destructive hover:text-destructive"
             >
               <Unlink className="mr-2 h-4 w-4" />
               {disconnecting ? "Desconectando..." : "Desconectar cuenta"}
@@ -174,14 +171,14 @@ const MercadoPago = () => {
       </Card>
 
       <Card className="border-muted">
-        <CardHeader>
-          <CardTitle className="text-base">¿Cómo funciona?</CardTitle>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium">¿Cómo funciona?</CardTitle>
         </CardHeader>
-        <CardContent className="text-sm text-muted-foreground space-y-2">
-          <p>1. Hacé clic en <strong>Conectar cuenta</strong>.</p>
+        <CardContent className="text-sm text-muted-foreground space-y-1">
+          <p>1. Hacé clic en <strong className="text-foreground">Conectar cuenta</strong>.</p>
           <p>2. Iniciá sesión con el usuario y contraseña de Mercado Pago.</p>
           <p>3. Aceptá los permisos. Eso es todo.</p>
-          <p>Los pagos se acreditarán directamente en la cuenta conectada.</p>
+          <p className="pt-1">Los pagos se acreditarán directamente en la cuenta conectada.</p>
         </CardContent>
       </Card>
     </div>
