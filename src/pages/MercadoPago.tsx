@@ -5,14 +5,51 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, XCircle, Link, Unlink } from "lucide-react";
 
+interface AccountInfo {
+  userId: string;
+  email: string | null;
+  name: string | null;
+}
+
 interface ConnectionStatus {
   connected: boolean;
   source: "oauth" | "env" | "none";
   userId?: string;
   savedAt?: string;
+  accountInfo?: AccountInfo | null;
 }
 
 const API_URL = import.meta.env.VITE_API_URL || "https://home-pisos-backend.onrender.com";
+
+const AccountDetails = ({ status }: { status: ConnectionStatus | null }) => {
+  if (!status) return null;
+
+  if (status.source === "none") {
+    return <span>No hay ninguna cuenta de Mercado Pago conectada.</span>;
+  }
+
+  const info = status.accountInfo;
+  const lines: string[] = [];
+  if (info?.name) lines.push(info.name);
+  if (info?.email) lines.push(info.email);
+  if (info?.userId) lines.push(`ID: ${info.userId}`);
+
+  if (status.connected) {
+    return (
+      <span>
+        {lines.join(" · ")}
+        {status.savedAt && ` · Vinculada el ${new Date(status.savedAt).toLocaleDateString("es-AR")}`}
+      </span>
+    );
+  }
+
+  return (
+    <span>
+      <span className="font-medium text-amber-600">Cuenta de respaldo (variable de entorno)</span>
+      {lines.length > 0 && <> · {lines.join(" · ")}</>}
+    </span>
+  );
+};
 
 const MercadoPago = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -95,7 +132,12 @@ const MercadoPago = () => {
             ) : status?.connected ? (
               <>
                 <CheckCircle2 className="text-green-500 h-5 w-5" />
-                Cuenta conectada
+                Cuenta conectada via OAuth
+              </>
+            ) : status?.source === "env" ? (
+              <>
+                <CheckCircle2 className="text-amber-500 h-5 w-5" />
+                Cuenta de respaldo activa
               </>
             ) : (
               <>
@@ -105,13 +147,7 @@ const MercadoPago = () => {
             )}
           </CardTitle>
           <CardDescription>
-            {loading
-              ? "Consultando estado..."
-              : status?.connected
-              ? `Cuenta ID: ${status.userId ?? "—"} · Vinculada el ${status.savedAt ? new Date(status.savedAt).toLocaleDateString("es-AR") : "—"}`
-              : status?.source === "env"
-              ? "Hay un token configurado como variable de entorno en el servidor."
-              : "No hay ninguna cuenta de Mercado Pago conectada."}
+            {loading ? "Consultando estado..." : <AccountDetails status={status} />}
           </CardDescription>
         </CardHeader>
 
