@@ -251,9 +251,9 @@ const ProductForm = ({
               <option value="por m²">Precio por metro cuadrado (m²)</option>
             </select>
           </div>
-          {formData.PriceType === "por m²" && (
+          {formData.PriceType !== "" && (
             <div>
-              <Label htmlFor="M2PerBox">m² por caja</Label>
+              <Label htmlFor="M2PerBox">m² por caja{formData.PriceType === "por m²" ? " *" : " (opcional)"}</Label>
               <Input
                 id="M2PerBox"
                 name="M2PerBox"
@@ -263,6 +263,7 @@ const ProductForm = ({
                 placeholder="Ej: 2.19"
                 value={formData.M2PerBox || ""}
                 onChange={handleChange}
+                required={formData.PriceType === "por m²"}
               />
               {formData.M2PerBox > 0 && formData.Price > 0 && (
                 <p className="text-sm text-muted-foreground mt-1">
