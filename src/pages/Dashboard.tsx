@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, Folders, HelpCircle, Share2, DollarSign } from "lucide-react";
+import { Package, Folders, HelpCircle, Share2, DollarSign, CreditCard } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -48,6 +48,13 @@ const Dashboard = () => {
       icon: DollarSign,
       link: "/precios",
       color: "bg-pink-500",
+    },
+    {
+      title: "Mercado Pago",
+      description: "Conectá tu cuenta para recibir pagos en la tienda",
+      icon: CreditCard,
+      link: "/pagos",
+      color: "bg-sky-500",
     },
   ];
 

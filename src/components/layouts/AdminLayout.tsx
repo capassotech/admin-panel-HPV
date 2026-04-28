@@ -3,7 +3,7 @@ import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu, X, Home, Package, Folders, HelpCircle,
-  Share2, DollarSign, LogOut, ShoppingCart
+  Share2, DollarSign, LogOut, ShoppingCart, CreditCard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -47,6 +47,7 @@ const AdminLayout = ({ onLogout }: AdminLayoutProps) => {
     { name: "Preguntas frecuentes", path: "/faqs", icon: HelpCircle },
     { name: "Redes sociales", path: "/social", icon: Share2 },
     { name: "Actualizar precios", path: "/precios", icon: DollarSign },
+    { name: "Mercado Pago", path: "/pagos", icon: CreditCard },
   ];
 
   const mobileSidebarVariants = {
