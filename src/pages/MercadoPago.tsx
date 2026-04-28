@@ -137,7 +137,7 @@ const MercadoPago = () => {
               )}
               {isFallback && (
                 <p className="text-xs text-muted-foreground pt-1">
-                  Esta es la cuenta configurada por defecto. Podés reemplazarla conectando la cuenta del cliente.
+                  Esta es la cuenta configurada por defecto. Podés reemplazarla conectando tu propia cuenta de Mercado Pago.
                 </p>
               )}
             </div>
