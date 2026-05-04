@@ -25,6 +25,7 @@ const EMPTY_FORM = {
   IsFeatured: false,
   Size: "",
   ImageUrls: [] as string[],
+  RequiresQuote: false,
 };
 
 /** Coincide con los <option value> del select; tolera camelCase y variantes en Firebase */
@@ -292,6 +293,24 @@ const ProductForm = ({
               }}
               className="w-full"
             />
+          </div>
+          <div className="pt-4">
+            <div className="flex items-center justify-between p-4 rounded-lg border border-amber-200 bg-amber-50">
+              <div>
+                <p className="font-medium text-sm">Requiere consulta previa</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  El cliente no podrá comprarlo por la tienda. Se mostrará un botón de WhatsApp para coordinar la entrega.
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked={formData.RequiresQuote || false}
+                onChange={(e) =>
+                  setFormData((prev: any) => ({ ...prev, RequiresQuote: e.target.checked }))
+                }
+                className="w-5 h-5 cursor-pointer shrink-0"
+              />
+            </div>
           </div>
           <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="outline" onClick={onCancel}>
