@@ -231,7 +231,7 @@ const Products = () => {
 
 const ProductCard = ({ product, categories, onToggleFeatured, onDelete, onEdit }) => {
   const categoryName = categories.find((c) => c.IdCategory === product.IdCategory)?.Name || "Sin categoría";
-  const priceFormatted = `$${(product.Price || 0).toLocaleString("es-AR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+  const priceFormatted = `$${(product.Price || 0).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   return (
     <motion.div

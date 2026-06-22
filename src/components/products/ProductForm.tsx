@@ -5,6 +5,7 @@ import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { database, storage } from "@/firebase";
 
 interface ProductFormProps {
@@ -267,15 +268,14 @@ const ProductForm = ({
           </div>
           <div>
             <Label htmlFor="Price">Precio</Label>
-            <Input
+            <CurrencyInput
               id="Price"
               name="Price"
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="Ej: 1500"
-              value={formData.Price === "" ? "" : formData.Price}
-              onChange={handleChange}
+              placeholder="Ej: 1.500,00"
+              value={formData.Price}
+              onValueChange={(val) =>
+                setFormData((prev: any) => ({ ...prev, Price: val }))
+              }
               required
             />
           </div>
