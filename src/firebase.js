@@ -15,11 +15,12 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
+if (import.meta.env.DEV) {
+  console.log("[Firebase] firebaseConfig:", firebaseConfig);
+}
+
 const app = initializeApp(firebaseConfig);
 
-// Exporta la instancia de autenticación
 export const auth = getAuth(app);
-
-// Exporta la instancia de Realtime Database
 export const database = getDatabase(app);
 export const storage = getStorage(app);
