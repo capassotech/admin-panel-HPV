@@ -18,6 +18,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -26,6 +36,7 @@ const Products = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [productToDelete, setProductToDelete] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -106,17 +117,22 @@ const Products = () => {
   };
 
   const handleDeleteProduct = (product) => {
-    if (window.confirm("¿Estás seguro de que deseas eliminar este producto?")) {
-      try {
-        setLoading(true);
-        const productRef = ref(database, `Product/${product.IdProduct}`);
-        remove(productRef);
-      } catch (error) {
-        console.error("Error al eliminar el producto:", error);
-        toast.error("Error al eliminar el producto. Por favor, inténtelo de nuevo más tarde.");
-      } finally {
-        setLoading(false);
-      }
+    setProductToDelete(product);
+  };
+
+  const confirmDeleteProduct = async () => {
+    if (!productToDelete) return;
+    try {
+      setLoading(true);
+      const productRef = ref(database, `Product/${productToDelete.IdProduct}`);
+      await remove(productRef);
+      toast.success("Producto eliminado correctamente.");
+    } catch (error) {
+      console.error("Error al eliminar el producto:", error);
+      toast.error("Error al eliminar el producto. Por favor, inténtelo de nuevo más tarde.");
+    } finally {
+      setLoading(false);
+      setProductToDelete(null);
     }
   };
 
@@ -225,13 +241,38 @@ const Products = () => {
           </div>
         )}
       </div>
+
+      <AlertDialog
+        open={!!productToDelete}
+        onOpenChange={(open) => !open && setProductToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar producto?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Estás a punto de eliminar{" "}
+              <span className="font-medium text-foreground">{productToDelete?.Name}</span>.
+              Esta acción no se puede deshacer y el producto se borrará permanentemente del catálogo.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteProduct}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
 
 const ProductCard = ({ product, categories, onToggleFeatured, onDelete, onEdit }) => {
   const categoryName = categories.find((c) => c.IdCategory === product.IdCategory)?.Name || "Sin categoría";
-  const priceFormatted = `$${(product.Price || 0).toLocaleString("es-AR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+  const priceFormatted = `$${(product.Price || 0).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   return (
     <motion.div

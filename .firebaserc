@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "home-pisos-admin"
+    "default": "home-pisos-admin",
+    "prod": "home-pisos-admin",
+    "qa": "home-pisos-admin-qa"
   }
 }
