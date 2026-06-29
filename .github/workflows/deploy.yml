@@ -37,7 +37,7 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_HOME_PISOS_VINILICOS_ADMIN_PROD }}
           channelId: live
-          projectId: home-pisos-admin
+          projectId: home-pisos-vinilicos
 
       - name: Deploy to Firebase (development)
         if: github.ref == 'refs/heads/develop'
@@ -46,4 +46,4 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_HPV_DESARROLLO_ADMIN_QA }}
           channelId: live
-          projectId: home-pisos-admin-qa
+          projectId: hpv-desarrollo
