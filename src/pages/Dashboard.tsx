@@ -1,10 +1,13 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, Folders, HelpCircle, Share2, DollarSign, CreditCard } from "lucide-react";
+import { Package, Folders, HelpCircle, Share2, DollarSign, CreditCard, ShoppingCart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useNewOrdersCount } from "@/hooks/useNewOrdersCount";
 
 const Dashboard = () => {
+  const { newOrdersCount } = useNewOrdersCount();
+
   const cardVariants = {
     hover: {
       scale: 1.02,
@@ -20,6 +23,14 @@ const Dashboard = () => {
       icon: Package,
       link: "/productos",
       color: "bg-blue-500",
+    },
+    {
+      title: "Pedidos",
+      description: "Gestioná los pedidos recibidos desde la tienda",
+      icon: ShoppingCart,
+      link: "/pedidos",
+      color: "bg-orange-500",
+      badge: newOrdersCount,
     },
     {
       title: "Categorías",
@@ -81,7 +92,12 @@ const Dashboard = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
             >
-              <Card className="overflow-hidden h-full border">
+              <Card className="relative overflow-hidden h-full border">
+                {card.badge ? (
+                  <span className="absolute right-3 top-3 z-10 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-xs font-semibold text-destructive-foreground">
+                    {card.badge > 99 ? "99+" : card.badge}
+                  </span>
+                ) : null}
                 <div className={`${card.color} h-2`} />
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center">
