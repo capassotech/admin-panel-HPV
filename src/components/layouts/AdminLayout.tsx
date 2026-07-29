@@ -3,12 +3,13 @@ import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu, X, Home, Package, Folders, HelpCircle,
-  Share2, DollarSign, LogOut, ShoppingCart, CreditCard
+  Share2, DollarSign, LogOut, ShoppingCart, CreditCard, Bell
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useNewOrdersCount } from "@/hooks/useNewOrdersCount";
 import { cn } from "@/lib/utils";
 
 interface AdminLayoutProps {
@@ -20,10 +21,15 @@ const AdminLayout = ({ onLogout }: AdminLayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { newOrdersCount, markAllSeen } = useNewOrdersCount();
 
   useEffect(() => {
     if (isMobile) setIsSidebarOpen(false);
   }, [location.pathname, isMobile]);
+
+  useEffect(() => {
+    if (location.pathname.startsWith("/pedidos")) markAllSeen();
+  }, [location.pathname, markAllSeen]);
 
   // En desktop lo queremos abierto por defecto
   useEffect(() => {
@@ -48,6 +54,7 @@ const AdminLayout = ({ onLogout }: AdminLayoutProps) => {
     { name: "Redes sociales", path: "/social", icon: Share2 },
     { name: "Actualizar precios", path: "/precios", icon: DollarSign },
     { name: "Mercado Pago", path: "/pagos", icon: CreditCard },
+    { name: "Notificaciones", path: "/notificaciones", icon: Bell },
   ];
 
   const mobileSidebarVariants = {
@@ -110,7 +117,12 @@ const AdminLayout = ({ onLogout }: AdminLayoutProps) => {
                       isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
                     )}
                   />
-                  {item.name}
+                  <span className="flex-1">{item.name}</span>
+                  {item.path === "/pedidos" && newOrdersCount > 0 ? (
+                    <span className="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-xs font-semibold text-destructive-foreground">
+                      {newOrdersCount > 99 ? "99+" : newOrdersCount}
+                    </span>
+                  ) : null}
                 </>
               )}
             </NavLink>

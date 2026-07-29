@@ -20,6 +20,7 @@ import SocialNetworks from "./pages/SocialNetworks";
 import PriceUpdates from "./pages/PriceUpdates";
 import Orders from "./pages/Orders";
 import MercadoPago from "./pages/MercadoPago";
+import NotificationSettings from "./pages/NotificationSettings";
 import NotFound from "./pages/NotFound";
 
 // Layout
@@ -86,6 +87,7 @@ const App = () => {
               <Route path="precios" element={<PriceUpdates />} />
               <Route path="pedidos" element={<Orders />} />
               <Route path="pagos" element={<MercadoPago />} />
+              <Route path="notificaciones" element={<NotificationSettings />} />
             </Route>
             
             <Route path="*" element={<NotFound />} />
