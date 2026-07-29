@@ -24,6 +24,7 @@ import NotFound from "./pages/NotFound";
 
 // Layout
 import AdminLayout from "./components/layouts/AdminLayout";
+import EnvironmentBadge from "./components/EnvironmentBadge";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +49,7 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <EnvironmentBadge />
         <BrowserRouter>
           <Routes>
             <Route 
