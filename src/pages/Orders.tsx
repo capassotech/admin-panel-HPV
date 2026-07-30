@@ -466,6 +466,9 @@ const Orders: React.FC = () => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [cancelTarget, setCancelTarget] = useState<Order | null>(null);
+  const [advanceTarget, setAdvanceTarget] = useState<{ order: Order; status: OrderStatus } | null>(
+    null
+  );
 
   // Filtros
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -527,6 +530,13 @@ const Orders: React.FC = () => {
     const target = cancelTarget;
     setCancelTarget(null);
     await patchStatus(target, "cancelled");
+  };
+
+  const confirmAdvance = async () => {
+    if (!advanceTarget) return;
+    const { order, status } = advanceTarget;
+    setAdvanceTarget(null);
+    await patchStatus(order, status);
   };
 
   const filteredOrders = useMemo(() => {
@@ -691,7 +701,7 @@ const Orders: React.FC = () => {
                         <OrderActions
                           order={order}
                           isUpdating={isUpdating}
-                          onAdvance={patchStatus}
+                          onAdvance={(order, status) => setAdvanceTarget({ order, status })}
                           onCancel={setCancelTarget}
                           className="hidden flex-wrap justify-end gap-2 md:flex"
                         />
@@ -709,7 +719,7 @@ const Orders: React.FC = () => {
                               <OrderActions
                                 order={order}
                                 isUpdating={isUpdating}
-                                onAdvance={patchStatus}
+                                onAdvance={(order, status) => setAdvanceTarget({ order, status })}
                                 onCancel={setCancelTarget}
                                 className="flex flex-wrap gap-2 md:hidden"
                               />
@@ -747,6 +757,19 @@ const Orders: React.FC = () => {
                   ? El pedido quedará marcado como{" "}
                   <span className="font-medium text-foreground">cancelado</span> y
                   esta acción no se puede deshacer.
+                  <br />
+                  <br />
+                  {cancelTarget.customer?.email ? (
+                    <>
+                      Se notificará al cliente por email (
+                      <span className="font-medium text-foreground">
+                        {cancelTarget.customer.email}
+                      </span>
+                      ) de este cambio.
+                    </>
+                  ) : (
+                    "El cliente no tiene un email cargado, no se enviará notificación."
+                  )}
                 </>
               ) : null}
             </AlertDialogDescription>
@@ -759,6 +782,60 @@ const Orders: React.FC = () => {
             >
               Sí, cancelar pedido
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={advanceTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setAdvanceTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {advanceTarget ? getStatusMeta(advanceTarget.order.status).next?.action : ""}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {advanceTarget ? (
+                <>
+                  El pedido{" "}
+                  <span className="font-mono font-medium text-foreground">
+                    {advanceTarget.order.id}
+                  </span>
+                  {advanceTarget.order.customer?.firstName ? (
+                    <>
+                      {" "}
+                      de {advanceTarget.order.customer.firstName}{" "}
+                      {advanceTarget.order.customer.lastName}
+                    </>
+                  ) : null}{" "}
+                  pasará a estado{" "}
+                  <span className="font-medium text-foreground">
+                    {STATUS_META[advanceTarget.status].label}
+                  </span>
+                  .
+                  <br />
+                  <br />
+                  {advanceTarget.order.customer?.email ? (
+                    <>
+                      Se notificará al cliente por email (
+                      <span className="font-medium text-foreground">
+                        {advanceTarget.order.customer.email}
+                      </span>
+                      ) de este cambio.
+                    </>
+                  ) : (
+                    "El cliente no tiene un email cargado, no se enviará notificación."
+                  )}
+                </>
+              ) : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Volver</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmAdvance}>Confirmar</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
