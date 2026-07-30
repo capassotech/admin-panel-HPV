@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Lock, User, Eye, EyeOff } from "lucide-react";
+import { Lock, Mail, Eye, EyeOff } from "lucide-react";
 import { auth } from "@/firebase"; // Importa la instancia de autenticación
 import { signInWithEmailAndPassword } from "firebase/auth"; // Método de inicio de sesión
 
@@ -40,28 +40,57 @@ const Login = ({ onLogin }: LoginProps) => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-b from-blue-50 to-white p-4">
+    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-gradient-to-b from-blue-50 via-white to-white p-4">
+      {/* Decoración de fondo */}
+      <div className="pointer-events-none absolute -top-32 -left-24 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 -right-24 h-80 w-80 rounded-full bg-blue-200/50 blur-3xl" />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.4]"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle, hsl(var(--border)) 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+          maskImage: "radial-gradient(ellipse 60% 50% at 50% 0%, black, transparent)",
+        }}
+      />
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        className="relative w-full max-w-md"
       >
-        <Card className="border-none shadow-lg">
-          <CardHeader className="space-y-2 text-center">
-            <CardTitle className="text-2xl font-medium">Iniciar Sesión</CardTitle>
+        <div className="mb-6 flex flex-col items-center gap-2 text-center">
+          <motion.img
+            initial={{ scale: 0.85, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            src="/og-image.png"
+            alt="Home Pisos Vinílicos"
+            className="h-16 w-auto drop-shadow-sm sm:h-20"
+          />
+          <p className="text-sm text-muted-foreground">Panel de administración</p>
+        </div>
+
+        <Card className="border-none shadow-xl shadow-slate-200/70">
+          <CardHeader className="space-y-1.5 pb-4 text-center">
+            <CardTitle className="text-2xl font-semibold">Iniciar sesión</CardTitle>
             <CardDescription>
-              Ingrese sus credenciales para acceder al panel de administración
+              Ingresá tus credenciales para acceder al panel
             </CardDescription>
-            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+            {error && (
+              <p className="!mt-4 rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {error}
+              </p>
+            )}
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email">Correo Electrónico</Label>
+                <Label htmlFor="email">Correo electrónico</Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-3 text-gray-400">
-                    <User size={18} />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    <Mail size={18} />
                   </span>
                   <Input
                     id="email"
@@ -75,11 +104,9 @@ const Login = ({ onLogin }: LoginProps) => {
                 </div>
               </div>
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Contraseña</Label>
-                </div>
+                <Label htmlFor="password">Contraseña</Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-3 text-gray-400">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                     <Lock size={18} />
                   </span>
                   <Input
@@ -93,24 +120,32 @@ const Login = ({ onLogin }: LoginProps) => {
                   />
                   <button
                     type="button"
-                    className="absolute right-3 top-3 text-gray-400"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
               </div>
-              <Button 
-                type="submit" 
-                className="w-full" 
+              <Button
+                type="submit"
+                className="w-full shadow-md shadow-primary/20"
                 disabled={isLoading}
               >
-                {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
+                {isLoading ? "Iniciando sesión..." : "Iniciar sesión"}
               </Button>
             </form>
           </CardContent>
-          <CardFooter className="flex justify-center text-sm text-muted-foreground">
-            Desarrollado por Capasso Tech
+          <CardFooter className="flex justify-center text-xs text-muted-foreground">
+            Desarrollado por{" "}
+            <a
+              href="https://capasso.tech/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-1 font-medium text-primary hover:underline"
+            >
+              Capasso Tech
+            </a>
           </CardFooter>
         </Card>
       </motion.div>

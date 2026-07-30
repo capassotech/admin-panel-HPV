@@ -9,15 +9,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useNewOrdersCount } from "@/hooks/useNewOrdersCount";
 import { cn } from "@/lib/utils";
@@ -52,8 +43,6 @@ const navGroups = [
     ],
   },
 ];
-
-const navigation = navGroups.flatMap((group) => group.items);
 
 const isLocalBackend = /localhost|127\.0\.0\.1/.test(import.meta.env.VITE_API_URL || "");
 const backendLabel = isLocalBackend ? "Local" : "QA";
@@ -104,19 +93,6 @@ const AdminLayout = ({ onLogout }: AdminLayoutProps) => {
     exit: { opacity: 0, y: 10 },
     transition: { duration: 0.3 }
   };
-
-  const currentPageName = (() => {
-    if (location.pathname === "/productos/nuevo") return "Agregar producto";
-    if (location.pathname.startsWith("/productos/") && location.pathname.endsWith("/editar")) {
-      return "Editar producto";
-    }
-    if (location.pathname === "/categorias/nuevo") return "Agregar categoría";
-    if (location.pathname.startsWith("/categorias/") && location.pathname.endsWith("/editar")) {
-      return "Editar categoría";
-    }
-    const currentRoute = navigation.find((item) => item.path === location.pathname);
-    return currentRoute ? currentRoute.name : "Admin Panel";
-  })();
 
   // Sidebar content (reutilizado por mobile y desktop)
   const SidebarInner = () => (
@@ -270,31 +246,16 @@ const AdminLayout = ({ onLogout }: AdminLayoutProps) => {
                 </NavLink>
               </Button>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2 px-1.5 sm:px-2">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-primary/10 text-sm font-semibold text-primary">
-                        A
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="hidden text-sm font-medium sm:inline">Administrador</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel className="font-normal">
-                    <p className="text-sm font-medium">Administrador</p>
-                    <p className="text-xs text-muted-foreground">{currentPageName}</p>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={handleLogout}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <LogOut size={16} className="mr-2" /> Cerrar sesión
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleLogout}
+                aria-label="Cerrar sesión"
+                title="Cerrar sesión"
+                className="text-muted-foreground hover:text-destructive"
+              >
+                <LogOut size={18} />
+              </Button>
             </div>
           </div>
         </header>
