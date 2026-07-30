@@ -35,6 +35,7 @@ import {
   ArrowRight,
   RefreshCw,
 } from "lucide-react";
+import PageHeader from "@/components/layouts/PageHeader";
 
 const API_URL =
   import.meta.env.VITE_API_URL || "https://home-pisos-backend.onrender.com";
@@ -485,17 +486,15 @@ const Orders: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Pedidos</h1>
-          <p className="text-muted-foreground">
-            Listado de pedidos recibidos desde la tienda.
-          </p>
-        </div>
-        <Button variant="outline" size="sm" onClick={fetchOrders} disabled={loading}>
-          <RefreshCw className="h-4 w-4" /> Actualizar
-        </Button>
-      </div>
+      <PageHeader
+        title="Pedidos"
+        description="Listado de pedidos recibidos desde la tienda."
+        actions={
+          <Button variant="outline" size="sm" onClick={fetchOrders} disabled={loading}>
+            <RefreshCw className="h-4 w-4" /> Actualizar
+          </Button>
+        }
+      />
 
       {/* Filtros */}
       <div className="grid gap-3 rounded-lg border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">

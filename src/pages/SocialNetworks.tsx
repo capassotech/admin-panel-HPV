@@ -24,6 +24,7 @@ import {
   FileText,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import PageHeader from "@/components/layouts/PageHeader";
 import { database } from "@/firebase";
 import { ref as dbRef, onValue, push, update, remove } from "firebase/database";
 
@@ -224,17 +225,15 @@ const SocialNetworks = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Redes sociales</h1>
-          <p className="text-muted-foreground">
-            Administre sus enlaces de redes sociales y su sitio web.
-          </p>
-        </div>
-        <Button className="sm:self-start" onClick={() => setIsAddingSocial(true)}>
-          <Plus size={16} className="mr-2" /> Agregar
-        </Button>
-      </div>
+      <PageHeader
+        title="Redes sociales"
+        description="Administre sus enlaces de redes sociales y su sitio web."
+        actions={
+          <Button onClick={() => setIsAddingSocial(true)}>
+            <Plus size={16} className="mr-2" /> Agregar
+          </Button>
+        }
+      />
 
       {isAddingSocial ? (
         <SocialForm

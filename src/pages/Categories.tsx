@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Star, Trash2, FileText, Search, Folder } from "lucide-react";
+import PageHeader from "@/components/layouts/PageHeader";
 import { database } from "@/firebase";
 import { ref as dbRef, onValue, update, remove } from "firebase/database";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -68,15 +69,15 @@ const Categories = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Categorías</h1>
-          <p className="text-muted-foreground">Gestione sus categorías de productos.</p>
-        </div>
-        <Button className="sm:self-start" onClick={() => navigate("/categorias/nuevo")}>
-          <Plus size={16} className="mr-2" /> Agregar categoría
-        </Button>
-      </div>
+      <PageHeader
+        title="Categorías"
+        description="Gestione sus categorías de productos."
+        actions={
+          <Button onClick={() => navigate("/categorias/nuevo")}>
+            <Plus size={16} className="mr-2" /> Agregar categoría
+          </Button>
+        }
+      />
 
       <div className="space-y-4">
         <div className="rounded-xl border bg-card p-3 sm:p-4">

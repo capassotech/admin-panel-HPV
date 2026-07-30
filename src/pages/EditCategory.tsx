@@ -6,6 +6,7 @@ import { database } from "@/firebase";
 import Loader from "@/components/ui/loader";
 import { Button } from "@/components/ui/button";
 import CategoryForm from "@/components/categories/CategoryForm";
+import PageHeader from "@/components/layouts/PageHeader";
 
 type CategoryRow = {
   IdCategory: string;
@@ -130,8 +131,12 @@ const EditCategory = () => {
   if (!category) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Editar categoría</h1>
-        <p className="text-muted-foreground">No se encontró la categoría solicitada.</p>
+        <PageHeader
+          title="Editar categoría"
+          description="No se encontró la categoría solicitada."
+          backTo="/categorias"
+          backLabel="Volver a categorías"
+        />
         <Button variant="outline" onClick={() => navigate("/categorias")}>
           Volver a categorías
         </Button>
@@ -141,10 +146,12 @@ const EditCategory = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Editar categoría</h1>
-        <p className="text-muted-foreground">Actualiza la información de la categoría seleccionada.</p>
-      </div>
+      <PageHeader
+        title="Editar categoría"
+        description="Actualiza la información de la categoría seleccionada."
+        backTo="/categorias"
+        backLabel="Volver a categorías"
+      />
       <CategoryForm
         category={category}
         hierarchyRelations={hierarchyRelations}

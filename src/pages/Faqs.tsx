@@ -22,6 +22,7 @@ import {
   ArrowDown,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import PageHeader from "@/components/layouts/PageHeader";
 import { database } from "@/firebase";
 import { ref as dbRef, onValue, push, update, remove } from "firebase/database";
 
@@ -223,17 +224,15 @@ const Faqs = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Preguntas frecuentes
-          </h1>
-          <p className="text-muted-foreground">Gestiona tus preguntas frecuentes.</p>
-        </div>
-        <Button className="sm:self-start" onClick={() => setIsAddingFaq(true)}>
-          <Plus size={16} className="mr-2" /> Agregar
-        </Button>
-      </div>
+      <PageHeader
+        title="Preguntas frecuentes"
+        description="Gestiona tus preguntas frecuentes."
+        actions={
+          <Button onClick={() => setIsAddingFaq(true)}>
+            <Plus size={16} className="mr-2" /> Agregar
+          </Button>
+        }
+      />
 
       {isAddingFaq ? (
         <FaqForm

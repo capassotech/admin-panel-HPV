@@ -50,7 +50,8 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <EnvironmentBadge />
+        {/* En el panel autenticado el estado de entorno ya se muestra en la barra superior */}
+        {!isAuthenticated && <EnvironmentBadge />}
         <BrowserRouter>
           <Routes>
             <Route 

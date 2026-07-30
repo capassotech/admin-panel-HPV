@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Star, Trash2, FileText, Image, Search } from "lucide-react";
+import PageHeader from "@/components/layouts/PageHeader";
 import { database } from "@/firebase";
 import { onValue, update, remove, ref } from "firebase/database";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -155,15 +156,15 @@ const Products = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Productos</h1>
-          <p className="text-muted-foreground">Gestione la información de sus productos.</p>
-        </div>
-        <Button className="sm:self-start" onClick={() => navigate("/productos/nuevo")}>
-          <Plus size={16} className="mr-2" /> Agregar producto
-        </Button>
-      </div>
+      <PageHeader
+        title="Productos"
+        description="Gestione la información de sus productos."
+        actions={
+          <Button onClick={() => navigate("/productos/nuevo")}>
+            <Plus size={16} className="mr-2" /> Agregar producto
+          </Button>
+        }
+      />
 
       <div className="space-y-4">
         <div className="rounded-xl border bg-card p-3 sm:p-4">
