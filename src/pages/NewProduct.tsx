@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { push, ref, update } from "firebase/database";
 import { toast } from "sonner";
 import ProductForm from "@/components/products/ProductForm";
+import PageHeader from "@/components/layouts/PageHeader";
 import { database } from "@/firebase";
 
 const NewProduct = () => {
@@ -29,10 +30,12 @@ const NewProduct = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Agregar producto</h1>
-        <p className="text-muted-foreground">Complete los datos para crear un nuevo producto.</p>
-      </div>
+      <PageHeader
+        title="Agregar producto"
+        description="Complete los datos para crear un nuevo producto."
+        backTo="/productos"
+        backLabel="Volver a productos"
+      />
       <ProductForm
         onSave={handleSaveProduct}
         onCancel={() => navigate("/productos")}

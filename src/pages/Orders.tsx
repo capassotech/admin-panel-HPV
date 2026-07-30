@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import {
-  ChevronDown,
+  ChevronUp,
   ChevronRight,
   Search,
   Package,
@@ -31,13 +31,25 @@ import {
   Mail,
   Phone,
   Clock,
+  DollarSign,
   X,
   ArrowRight,
   RefreshCw,
+  ExternalLink,
+  MessageCircle,
+  PhoneCall,
 } from "lucide-react";
+import PageHeader from "@/components/layouts/PageHeader";
+import { cn } from "@/lib/utils";
 
 const API_URL =
   import.meta.env.VITE_API_URL || "https://home-pisos-backend.onrender.com";
+
+/** Misma detección de entorno que el badge del panel: hpv-desarrollo = QA. */
+const STORE_URL =
+  import.meta.env.VITE_FIREBASE_PROJECT_ID === "hpv-desarrollo"
+    ? "https://hpv-desarrollo.web.app"
+    : "https://homepisos.com.ar";
 
 type OrderStatus =
   | "pending"
@@ -234,144 +246,214 @@ const OrderActions: React.FC<OrderActionsProps> = ({
   );
 };
 
+const DetailSection: React.FC<{
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  className?: string;
+  children: React.ReactNode;
+}> = ({ icon: Icon, title, className, children }) => (
+  <div className={cn("rounded-lg border bg-card p-4", className)}>
+    <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
+      <Icon className="h-4 w-4 text-muted-foreground" /> {title}
+    </h4>
+    {children}
+  </div>
+);
+
 const OrderDetail: React.FC<{ order: Order; actions?: React.ReactNode }> = ({
   order,
   actions,
 }) => {
   const history = getHistory(order);
   return (
-    <div className="grid gap-6 p-4 md:grid-cols-2">
+    <div className="space-y-4 p-4 md:p-6">
+      {/* ID de pedido */}
+      <div className="flex items-center justify-between gap-3 rounded-lg border bg-card px-4 py-3">
+        <div>
+          <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+            ID de pedido
+          </p>
+          <p className="font-mono text-sm font-semibold text-foreground">{order.id}</p>
+        </div>
+      </div>
+
+      {/* Acciones (solo mobile: en desktop ya están en la fila) */}
       {actions ? (
-        <div className="md:col-span-2">
-          <h4 className="mb-2 text-sm font-semibold text-foreground">Acciones</h4>
+        <div className="md:hidden">
+          <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+            Acciones
+          </p>
           {actions}
         </div>
       ) : null}
-      {/* Productos */}
-      <div className="md:col-span-2">
-        <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
-          <Package className="h-4 w-4" /> Productos
-        </h4>
-        <div className="overflow-hidden rounded-md border">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-muted-foreground">
-              <tr>
-                <th className="px-3 py-2 text-left font-medium">Producto</th>
-                <th className="px-3 py-2 text-right font-medium">Cant.</th>
-                <th className="px-3 py-2 text-right font-medium">P. unit.</th>
-                <th className="px-3 py-2 text-right font-medium">Subtotal</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(order.items ?? []).map((item, i) => (
-                <tr key={`${item.productId}-${i}`} className="border-t">
-                  <td className="px-3 py-2">
-                    <div className="flex items-center gap-2">
-                      {item.imageUrl ? (
-                        <img
-                          src={item.imageUrl}
-                          alt={item.productName}
-                          className="h-9 w-9 rounded object-cover"
-                        />
-                      ) : null}
-                      <div>
-                        <div className="font-medium">{item.productName}</div>
-                        {item.purchaseUnit ? (
-                          <div className="text-xs text-muted-foreground">
-                            {item.purchaseUnit}
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-3 py-2 text-right">{item.quantity}</td>
-                  <td className="px-3 py-2 text-right">{formatMoney(item.price)}</td>
-                  <td className="px-3 py-2 text-right font-medium">
-                    {formatMoney(item.price * item.quantity)}
-                  </td>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* Productos */}
+        <DetailSection icon={Package} title="Productos" className="md:col-span-2">
+          <div className="overflow-hidden rounded-md border">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50 text-muted-foreground">
+                <tr>
+                  <th className="px-3 py-2 text-left font-medium">Producto</th>
+                  <th className="px-3 py-2 text-right font-medium">Cant.</th>
+                  <th className="px-3 py-2 text-right font-medium">P. unit.</th>
+                  <th className="px-3 py-2 text-right font-medium">Subtotal</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Envío */}
-      <div>
-        <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
-          <MapPin className="h-4 w-4" /> Dirección de envío
-        </h4>
-        <div className="space-y-0.5 text-sm text-muted-foreground">
-          <p className="text-foreground">
-            {order.customer?.firstName} {order.customer?.lastName}
-          </p>
-          <p>{order.shipping?.address}</p>
-          <p>
-            {order.shipping?.city}
-            {order.shipping?.province ? `, ${order.shipping.province}` : ""}
-          </p>
-          <p>CP {order.shipping?.postalCode}</p>
-          {order.shipping?.method?.name ? (
-            <p className="pt-1">
-              Método: {order.shipping.method.name}
-              {order.shipping.method.estimatedDays
-                ? ` (${order.shipping.method.estimatedDays})`
-                : ""}
-            </p>
-          ) : null}
-        </div>
-      </div>
-
-      {/* Contacto + resumen */}
-      <div className="space-y-4">
-        <div>
-          <h4 className="mb-2 text-sm font-semibold text-foreground">Contacto</h4>
-          <div className="space-y-1 text-sm text-muted-foreground">
-            <p className="flex items-center gap-2">
-              <Mail className="h-4 w-4" /> {order.customer?.email || "—"}
-            </p>
-            <p className="flex items-center gap-2">
-              <Phone className="h-4 w-4" /> {order.customer?.phone || "—"}
-            </p>
+              </thead>
+              <tbody>
+                {(order.items ?? []).map((item, i) => {
+                  const productUrl = item.productId
+                    ? `${STORE_URL}/producto/${item.productId}`
+                    : null;
+                  const openProduct = () => {
+                    if (productUrl) window.open(productUrl, "_blank", "noopener,noreferrer");
+                  };
+                  return (
+                    <tr
+                      key={`${item.productId}-${i}`}
+                      className={cn(
+                        "border-t",
+                        productUrl && "cursor-pointer hover:bg-muted/50"
+                      )}
+                      onClick={openProduct}
+                      role={productUrl ? "link" : undefined}
+                      tabIndex={productUrl ? 0 : undefined}
+                      onKeyDown={(e) => {
+                        if (productUrl && (e.key === "Enter" || e.key === " ")) {
+                          e.preventDefault();
+                          openProduct();
+                        }
+                      }}
+                    >
+                      <td className="px-3 py-2">
+                        <div className="flex items-center gap-2">
+                          {item.imageUrl ? (
+                            <img
+                              src={item.imageUrl}
+                              alt={item.productName}
+                              className="h-9 w-9 rounded object-cover"
+                            />
+                          ) : null}
+                          <div>
+                            <div className="flex items-center gap-1.5 font-medium">
+                              {item.productName}
+                              {productUrl ? (
+                                <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                              ) : null}
+                            </div>
+                            {item.purchaseUnit ? (
+                              <div className="text-xs text-muted-foreground">
+                                {item.purchaseUnit}
+                              </div>
+                            ) : null}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-3 py-2 text-right">{item.quantity}</td>
+                      <td className="px-3 py-2 text-right">{formatMoney(item.price)}</td>
+                      <td className="px-3 py-2 text-right font-medium">
+                        {formatMoney(item.price * item.quantity)}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
-        </div>
-        <div>
-          <h4 className="mb-2 text-sm font-semibold text-foreground">Resumen</h4>
-          <div className="space-y-1 text-sm">
-            <div className="flex justify-between text-muted-foreground">
-              <span>Subtotal</span>
-              <span>{formatMoney(order.subtotal)}</span>
-            </div>
-            <div className="flex justify-between text-muted-foreground">
-              <span>Envío</span>
-              <span>{formatMoney(order.shippingCost)}</span>
-            </div>
-            <div className="flex justify-between border-t pt-1 font-semibold text-foreground">
-              <span>Total</span>
-              <span>{formatMoney(order.total)}</span>
-            </div>
-          </div>
-        </div>
-      </div>
+        </DetailSection>
 
-      {/* Historial */}
-      <div className="md:col-span-2">
-        <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
-          <Clock className="h-4 w-4" /> Historial de estados
-        </h4>
-        <ol className="relative space-y-3 border-l pl-4">
-          {history.map((h, i) => (
-            <li key={i} className="relative">
-              <span className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full bg-primary" />
-              <div className="flex flex-wrap items-center gap-2">
-                <StatusBadge status={h.status} />
-                <span className="text-xs text-muted-foreground">
-                  {formatDate(h.at)}
-                </span>
+        {/* Envío */}
+        <DetailSection icon={MapPin} title="Dirección de envío">
+          <div className="space-y-0.5 text-sm text-muted-foreground">
+            <p className="font-medium text-foreground">
+              {order.customer?.firstName} {order.customer?.lastName}
+            </p>
+            <p>{order.shipping?.address}</p>
+            <p>
+              {order.shipping?.city}
+              {order.shipping?.province ? `, ${order.shipping.province}` : ""}
+            </p>
+            <p>CP {order.shipping?.postalCode}</p>
+            {order.shipping?.method?.name ? (
+              <p className="pt-2 text-foreground">
+                <span className="text-muted-foreground">Método: </span>
+                {order.shipping.method.name}
+                {order.shipping.method.estimatedDays
+                  ? ` (${order.shipping.method.estimatedDays})`
+                  : ""}
+              </p>
+            ) : null}
+          </div>
+        </DetailSection>
+
+        {/* Contacto + resumen */}
+        <div className="space-y-4">
+          <DetailSection icon={Mail} title="Contacto">
+            <div className="space-y-1.5 text-sm text-muted-foreground">
+              <p className="flex items-center gap-2">
+                <Mail className="h-4 w-4 shrink-0" /> {order.customer?.email || "—"}
+              </p>
+              <p className="flex items-center gap-2">
+                <Phone className="h-4 w-4 shrink-0" /> {order.customer?.phone || "—"}
+              </p>
+            </div>
+            {order.customer?.phone ? (
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button asChild size="sm" variant="outline" className="gap-1.5">
+                  <a href={`tel:${order.customer.phone.replace(/[\s-]/g, "")}`}>
+                    <PhoneCall className="h-3.5 w-3.5" /> Llamar
+                  </a>
+                </Button>
+                <Button
+                  asChild
+                  size="sm"
+                  className="gap-1.5 bg-[#25D366] text-white hover:bg-[#1ebe57]"
+                >
+                  <a
+                    href={`https://wa.me/${order.customer.phone.replace(/\D/g, "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+                  </a>
+                </Button>
               </div>
-            </li>
-          ))}
-        </ol>
+            ) : null}
+          </DetailSection>
+          <DetailSection icon={DollarSign} title="Resumen">
+            <div className="space-y-1.5 text-sm">
+              <div className="flex justify-between text-muted-foreground">
+                <span>Subtotal</span>
+                <span>{formatMoney(order.subtotal)}</span>
+              </div>
+              <div className="flex justify-between text-muted-foreground">
+                <span>Envío</span>
+                <span>{formatMoney(order.shippingCost)}</span>
+              </div>
+              <div className="flex justify-between border-t pt-1.5 text-base font-semibold text-foreground">
+                <span>Total</span>
+                <span>{formatMoney(order.total)}</span>
+              </div>
+            </div>
+          </DetailSection>
+        </div>
+
+        {/* Historial */}
+        <DetailSection icon={Clock} title="Historial de estados" className="md:col-span-2">
+          <ol className="relative space-y-3 border-l pl-4">
+            {history.map((h, i) => (
+              <li key={i} className="relative">
+                <span className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full bg-primary" />
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusBadge status={h.status} />
+                  <span className="text-xs text-muted-foreground">
+                    {formatDate(h.at)}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </DetailSection>
       </div>
     </div>
   );
@@ -384,6 +466,9 @@ const Orders: React.FC = () => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [cancelTarget, setCancelTarget] = useState<Order | null>(null);
+  const [advanceTarget, setAdvanceTarget] = useState<{ order: Order; status: OrderStatus } | null>(
+    null
+  );
 
   // Filtros
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -447,6 +532,13 @@ const Orders: React.FC = () => {
     await patchStatus(target, "cancelled");
   };
 
+  const confirmAdvance = async () => {
+    if (!advanceTarget) return;
+    const { order, status } = advanceTarget;
+    setAdvanceTarget(null);
+    await patchStatus(order, status);
+  };
+
   const filteredOrders = useMemo(() => {
     const q = search.trim().toLowerCase();
     const fromTime = dateFrom ? new Date(`${dateFrom}T00:00:00`).getTime() : null;
@@ -485,17 +577,15 @@ const Orders: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Pedidos</h1>
-          <p className="text-muted-foreground">
-            Listado de pedidos recibidos desde la tienda.
-          </p>
-        </div>
-        <Button variant="outline" size="sm" onClick={fetchOrders} disabled={loading}>
-          <RefreshCw className="h-4 w-4" /> Actualizar
-        </Button>
-      </div>
+      <PageHeader
+        title="Pedidos"
+        description="Listado de pedidos recibidos desde la tienda."
+        actions={
+          <Button variant="outline" size="sm" onClick={fetchOrders} disabled={loading}>
+            <RefreshCw className="h-4 w-4" /> Actualizar
+          </Button>
+        }
+      />
 
       {/* Filtros */}
       <div className="grid gap-3 rounded-lg border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -561,12 +651,11 @@ const Orders: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-8" />
-                <TableHead>ID</TableHead>
+                <TableHead className="w-px" />
+                <TableHead>Estado</TableHead>
                 <TableHead>Fecha</TableHead>
                 <TableHead>Cliente</TableHead>
                 <TableHead className="text-right">Total</TableHead>
-                <TableHead>Estado</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
@@ -575,21 +664,30 @@ const Orders: React.FC = () => {
                 const isExpanded = expandedId === order.id;
                 const isUpdating = updatingId === order.id;
                 return [
-                    <TableRow
-                      key={order.id}
-                      className="cursor-pointer"
-                      onClick={() =>
-                        setExpandedId(isExpanded ? null : order.id)
-                      }
-                    >
+                    <TableRow key={order.id}>
                       <TableCell>
-                        {isExpanded ? (
-                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 gap-1 whitespace-nowrap px-2 text-xs"
+                          onClick={() =>
+                            setExpandedId(isExpanded ? null : order.id)
+                          }
+                        >
+                          {isExpanded ? (
+                            <>
+                              <ChevronUp className="h-3.5 w-3.5" /> Ocultar
+                            </>
+                          ) : (
+                            <>
+                              <ChevronRight className="h-3.5 w-3.5" /> Ver
+                            </>
+                          )}
+                        </Button>
                       </TableCell>
-                      <TableCell className="font-mono text-xs">{order.id}</TableCell>
+                      <TableCell>
+                        <StatusBadge status={order.status} />
+                      </TableCell>
                       <TableCell className="whitespace-nowrap">
                         {formatDate(order.createdAt)}
                       </TableCell>
@@ -599,14 +697,11 @@ const Orders: React.FC = () => {
                       <TableCell className="text-right font-medium">
                         {formatMoney(order.total)}
                       </TableCell>
-                      <TableCell>
-                        <StatusBadge status={order.status} />
-                      </TableCell>
                       <TableCell className="text-right">
                         <OrderActions
                           order={order}
                           isUpdating={isUpdating}
-                          onAdvance={patchStatus}
+                          onAdvance={(order, status) => setAdvanceTarget({ order, status })}
                           onCancel={setCancelTarget}
                           className="hidden flex-wrap justify-end gap-2 md:flex"
                         />
@@ -617,14 +712,14 @@ const Orders: React.FC = () => {
                         key={`${order.id}-detail`}
                         className="hover:bg-transparent"
                       >
-                        <TableCell colSpan={7} className="bg-muted/30 p-0">
+                        <TableCell colSpan={6} className="bg-muted/30 p-0">
                           <OrderDetail
                             order={order}
                             actions={
                               <OrderActions
                                 order={order}
                                 isUpdating={isUpdating}
-                                onAdvance={patchStatus}
+                                onAdvance={(order, status) => setAdvanceTarget({ order, status })}
                                 onCancel={setCancelTarget}
                                 className="flex flex-wrap gap-2 md:hidden"
                               />
@@ -662,6 +757,19 @@ const Orders: React.FC = () => {
                   ? El pedido quedará marcado como{" "}
                   <span className="font-medium text-foreground">cancelado</span> y
                   esta acción no se puede deshacer.
+                  <br />
+                  <br />
+                  {cancelTarget.customer?.email ? (
+                    <>
+                      Se notificará al cliente por email (
+                      <span className="font-medium text-foreground">
+                        {cancelTarget.customer.email}
+                      </span>
+                      ) de este cambio.
+                    </>
+                  ) : (
+                    "El cliente no tiene un email cargado, no se enviará notificación."
+                  )}
                 </>
               ) : null}
             </AlertDialogDescription>
@@ -674,6 +782,60 @@ const Orders: React.FC = () => {
             >
               Sí, cancelar pedido
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={advanceTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setAdvanceTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {advanceTarget ? getStatusMeta(advanceTarget.order.status).next?.action : ""}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {advanceTarget ? (
+                <>
+                  El pedido{" "}
+                  <span className="font-mono font-medium text-foreground">
+                    {advanceTarget.order.id}
+                  </span>
+                  {advanceTarget.order.customer?.firstName ? (
+                    <>
+                      {" "}
+                      de {advanceTarget.order.customer.firstName}{" "}
+                      {advanceTarget.order.customer.lastName}
+                    </>
+                  ) : null}{" "}
+                  pasará a estado{" "}
+                  <span className="font-medium text-foreground">
+                    {STATUS_META[advanceTarget.status].label}
+                  </span>
+                  .
+                  <br />
+                  <br />
+                  {advanceTarget.order.customer?.email ? (
+                    <>
+                      Se notificará al cliente por email (
+                      <span className="font-medium text-foreground">
+                        {advanceTarget.order.customer.email}
+                      </span>
+                      ) de este cambio.
+                    </>
+                  ) : (
+                    "El cliente no tiene un email cargado, no se enviará notificación."
+                  )}
+                </>
+              ) : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Volver</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmAdvance}>Confirmar</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import PageHeader from "@/components/layouts/PageHeader";
 import { database } from "@/firebase";
 import { ref as dbRef, get, onValue, push, update } from "firebase/database";
 
@@ -329,16 +330,10 @@ const PriceUpdates = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Actualizaciones de precios
-          </h1>
-          <p className="text-muted-foreground">
-            Actualice los precios de los productos de forma masiva.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Actualizaciones de precios"
+        description="Actualice los precios de los productos de forma masiva."
+      />
       <Tabs defaultValue="bulk" value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full max-w-md grid-cols-2">
           <TabsTrigger value="bulk">Actualización masiva</TabsTrigger>

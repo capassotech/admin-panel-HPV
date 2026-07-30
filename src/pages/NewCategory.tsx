@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { push, ref, update } from "firebase/database";
 import { toast } from "sonner";
 import CategoryForm from "@/components/categories/CategoryForm";
+import PageHeader from "@/components/layouts/PageHeader";
 import { database } from "@/firebase";
 
 const NewCategory = () => {
@@ -33,10 +34,12 @@ const NewCategory = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Agregar categoría</h1>
-        <p className="text-muted-foreground">Complete los datos para crear una nueva categoría.</p>
-      </div>
+      <PageHeader
+        title="Agregar categoría"
+        description="Complete los datos para crear una nueva categoría."
+        backTo="/categorias"
+        backLabel="Volver a categorías"
+      />
       <CategoryForm
         onSave={handleSave}
         onCancel={() => navigate("/categorias")}

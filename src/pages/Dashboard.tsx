@@ -4,6 +4,7 @@ import { Package, Folders, HelpCircle, Share2, DollarSign, CreditCard, ShoppingC
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useNewOrdersCount } from "@/hooks/useNewOrdersCount";
+import PageHeader from "@/components/layouts/PageHeader";
 
 const Dashboard = () => {
   const { newOrdersCount } = useNewOrdersCount();
@@ -71,12 +72,10 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Hola Ramiro</h1>
-        <p className="text-muted-foreground">
-          Bienvenido a tu panel de administración.
-        </p>
-      </div>
+      <PageHeader
+        title="Hola Ramiro"
+        description="Bienvenido a tu panel de administración."
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {cards.map((card, index) => (

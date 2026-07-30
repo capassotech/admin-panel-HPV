@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, XCircle, Link, Unlink, User, Mail } from "lucide-react";
+import PageHeader from "@/components/layouts/PageHeader";
 
 interface AccountInfo {
   userId: string;
@@ -113,12 +114,10 @@ const MercadoPago = () => {
 
   return (
     <div className="space-y-6 max-w-lg">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Mercado Pago</h1>
-        <p className="text-muted-foreground">
-          Conectá la cuenta de Mercado Pago para recibir pagos en la tienda.
-        </p>
-      </div>
+      <PageHeader
+        title="Mercado Pago"
+        description="Conectá la cuenta de Mercado Pago para recibir pagos en la tienda."
+      />
 
       <Card>
         <CardHeader className="pb-3">

@@ -6,6 +6,7 @@ import { database } from "@/firebase";
 import Loader from "@/components/ui/loader";
 import { Button } from "@/components/ui/button";
 import ProductForm from "@/components/products/ProductForm";
+import PageHeader from "@/components/layouts/PageHeader";
 
 const EditProduct = () => {
   const { productId } = useParams();
@@ -70,8 +71,12 @@ const EditProduct = () => {
   if (!product) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Editar producto</h1>
-        <p className="text-muted-foreground">No se encontró el producto solicitado.</p>
+        <PageHeader
+          title="Editar producto"
+          description="No se encontró el producto solicitado."
+          backTo="/productos"
+          backLabel="Volver a productos"
+        />
         <Button variant="outline" onClick={() => navigate("/productos")}>
           Volver a productos
         </Button>
@@ -81,10 +86,12 @@ const EditProduct = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Editar producto</h1>
-        <p className="text-muted-foreground">Actualiza la información del producto seleccionado.</p>
-      </div>
+      <PageHeader
+        title="Editar producto"
+        description="Actualiza la información del producto seleccionado."
+        backTo="/productos"
+        backLabel="Volver a productos"
+      />
       <ProductForm
         key={productId}
         product={product}

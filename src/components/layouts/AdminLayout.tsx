@@ -3,7 +3,8 @@ import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu, X, Home, Package, Folders, HelpCircle,
-  Share2, DollarSign, LogOut, ShoppingCart, CreditCard, Bell
+  Share2, DollarSign, LogOut, ShoppingCart, CreditCard, Bell,
+  PanelLeftClose, PanelLeftOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -15,6 +16,39 @@ import { cn } from "@/lib/utils";
 interface AdminLayoutProps {
   onLogout: () => void;
 }
+
+const navGroups = [
+  {
+    label: "Principal",
+    items: [
+      { name: "Dashboard", path: "/dashboard", icon: Home },
+      { name: "Productos", path: "/productos", icon: Package },
+      { name: "Pedidos", path: "/pedidos", icon: ShoppingCart },
+      { name: "Categorías", path: "/categorias", icon: Folders },
+    ],
+  },
+  {
+    label: "Contenido",
+    items: [
+      { name: "Preguntas frecuentes", path: "/faqs", icon: HelpCircle },
+      { name: "Redes sociales", path: "/social", icon: Share2 },
+      { name: "Actualizar precios", path: "/precios", icon: DollarSign },
+    ],
+  },
+  {
+    label: "Configuración",
+    items: [
+      { name: "Mercado Pago", path: "/pagos", icon: CreditCard },
+      { name: "Notificaciones", path: "/notificaciones", icon: Bell },
+    ],
+  },
+];
+
+const isLocalBackend = /localhost|127\.0\.0\.1/.test(import.meta.env.VITE_API_URL || "");
+const backendLabel = isLocalBackend ? "Local" : "QA";
+const dbProjectId = import.meta.env.VITE_FIREBASE_PROJECT_ID || "desconocida";
+const isQaDb = dbProjectId === "hpv-desarrollo";
+const dbLabel = isQaDb ? "QA" : dbProjectId;
 
 const AdminLayout = ({ onLogout }: AdminLayoutProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -45,18 +79,6 @@ const AdminLayout = ({ onLogout }: AdminLayoutProps) => {
     }
   };
 
-  const navigation = [
-    { name: "Dashboard", path: "/dashboard", icon: Home },
-    { name: "Productos", path: "/productos", icon: Package },
-    { name: "Pedidos", path: "/pedidos", icon: ShoppingCart },
-    { name: "Categorías", path: "/categorias", icon: Folders },
-    { name: "Preguntas frecuentes", path: "/faqs", icon: HelpCircle },
-    { name: "Redes sociales", path: "/social", icon: Share2 },
-    { name: "Actualizar precios", path: "/precios", icon: DollarSign },
-    { name: "Mercado Pago", path: "/pagos", icon: CreditCard },
-    { name: "Notificaciones", path: "/notificaciones", icon: Bell },
-  ];
-
   const mobileSidebarVariants = {
     open: { x: 0, transition: { type: "spring", stiffness: 300, damping: 30 } },
     closed: {
@@ -72,22 +94,16 @@ const AdminLayout = ({ onLogout }: AdminLayoutProps) => {
     transition: { duration: 0.3 }
   };
 
-  const getPageTitle = () => {
-    if (location.pathname === "/productos/nuevo") {
-      return "Agregar producto";
-    }
-    if (location.pathname.startsWith("/productos/") && location.pathname.endsWith("/editar")) {
-      return "Editar producto";
-    }
-    const currentRoute = navigation.find(item => item.path === location.pathname);
-    return currentRoute ? currentRoute.name : "Admin Panel";
-  };
-
   // Sidebar content (reutilizado por mobile y desktop)
   const SidebarInner = () => (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between p-4">
-        <h2 className="text-lg font-semibold text-foreground">Panel de administración</h2>
+      <div className="flex items-center justify-between gap-2 p-4">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground font-semibold">
+            H
+          </div>
+          <h2 className="truncate text-sm font-semibold text-foreground">Home Pisos · Admin</h2>
+        </div>
         {isMobile && (
           <Button variant="ghost" size="icon" onClick={toggleSidebar}>
             <X size={20} className="text-muted-foreground" />
@@ -95,50 +111,47 @@ const AdminLayout = ({ onLogout }: AdminLayoutProps) => {
         )}
       </div>
       <Separator />
-      <ScrollArea className="flex-1 py-2">
-        <nav className="space-y-1 px-2">
-          {navigation.map((item) => (
-            <NavLink
-              key={item.name}
-              to={item.path}
-              className={({ isActive }) => cn(
-                "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-150 group",
-                isActive
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-              )}
-            >
-              {({ isActive }) => (
-                <>
-                  <item.icon
-                    size={18}
-                    className={cn(
-                      "mr-3",
-                      isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
-                    )}
-                  />
-                  <span className="flex-1">{item.name}</span>
-                  {item.path === "/pedidos" && newOrdersCount > 0 ? (
-                    <span className="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-xs font-semibold text-destructive-foreground">
-                      {newOrdersCount > 99 ? "99+" : newOrdersCount}
-                    </span>
-                  ) : null}
-                </>
-              )}
-            </NavLink>
+      <ScrollArea className="flex-1 py-3">
+        <nav className="space-y-4 px-2">
+          {navGroups.map((group) => (
+            <div key={group.label} className="space-y-1">
+              <p className="px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+                {group.label}
+              </p>
+              {group.items.map((item) => (
+                <NavLink
+                  key={item.name}
+                  to={item.path}
+                  className={({ isActive }) => cn(
+                    "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-150 group",
+                    isActive
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                  )}
+                >
+                  {({ isActive }) => (
+                    <>
+                      <item.icon
+                        size={18}
+                        className={cn(
+                          "mr-3",
+                          isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                        )}
+                      />
+                      <span className="flex-1">{item.name}</span>
+                      {item.path === "/pedidos" && newOrdersCount > 0 ? (
+                        <span className="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-xs font-semibold text-destructive-foreground">
+                          {newOrdersCount > 99 ? "99+" : newOrdersCount}
+                        </span>
+                      ) : null}
+                    </>
+                  )}
+                </NavLink>
+              ))}
+            </div>
           ))}
         </nav>
       </ScrollArea>
-      <div className="p-4">
-        <Button
-          variant="outline"
-          className="w-full justify-start text-muted-foreground hover:text-destructive"
-          onClick={handleLogout}
-        >
-          <LogOut size={18} className="mr-3" />
-          Cerrar Sesión
-        </Button>
-      </div>
     </div>
   );
 
@@ -150,14 +163,17 @@ const AdminLayout = ({ onLogout }: AdminLayoutProps) => {
         !isMobile && isSidebarOpen && "md:pl-64"
       )}
     >
-      {/* Sidebar DESKTOP estático */}
+      {/* Sidebar DESKTOP estático, colapsable */}
       <aside
         className={cn(
-          "hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 md:z-40 md:w-64 md:bg-card md:shadow-lg md:border-r"
+          "hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 md:z-40 md:bg-card md:shadow-lg md:border-r md:transition-[width] md:duration-200 md:overflow-hidden",
+          isSidebarOpen ? "md:w-64" : "md:w-0 md:border-r-0"
         )}
         aria-label="Sidebar de escritorio"
       >
-        <SidebarInner />
+        <div className="w-64 h-full">
+          <SidebarInner />
+        </div>
       </aside>
 
       {/* Backdrop + Sidebar MOBILE animado */}
@@ -186,8 +202,8 @@ const AdminLayout = ({ onLogout }: AdminLayoutProps) => {
       {/* Contenido */}
       <main className="flex min-h-screen flex-col">
         <header className="sticky top-0 z-30 h-16 bg-card/80 backdrop-blur-md border-b">
-          <div className="flex items-center justify-between px-4 h-full">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between gap-2 px-4 h-full sm:px-6">
+            <div className="flex items-center gap-1">
               {/* Hamburguesa solo en mobile */}
               <Button
                 variant="ghost"
@@ -198,10 +214,48 @@ const AdminLayout = ({ onLogout }: AdminLayoutProps) => {
               >
                 <Menu size={20} />
               </Button>
-              <h1 className="text-lg font-medium">{getPageTitle()}</h1>
+              {/* Colapsar sidebar solo en desktop */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="hidden md:inline-flex text-muted-foreground"
+                onClick={toggleSidebar}
+                aria-label={isSidebarOpen ? "Contraer menú lateral" : "Expandir menú lateral"}
+                title={isSidebarOpen ? "Contraer menú lateral" : "Expandir menú lateral"}
+              >
+                {isSidebarOpen ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
+              </Button>
             </div>
-            <div className="flex items-center">
-              <span className="text-sm text-muted-foreground mr-4">Administrador</span>
+
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              {!import.meta.env.PROD && (
+                <div className="hidden items-center gap-1.5 rounded-full border border-amber-400/60 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-700 dark:text-amber-400 sm:flex">
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                  {backendLabel} · BD {dbLabel}
+                </div>
+              )}
+
+              <Button variant="ghost" size="icon" className="relative" asChild>
+                <NavLink to="/pedidos" aria-label="Ver pedidos">
+                  <Bell size={18} />
+                  {newOrdersCount > 0 && (
+                    <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold leading-none text-destructive-foreground">
+                      {newOrdersCount > 99 ? "99+" : newOrdersCount}
+                    </span>
+                  )}
+                </NavLink>
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleLogout}
+                aria-label="Cerrar sesión"
+                title="Cerrar sesión"
+                className="text-muted-foreground hover:text-destructive"
+              >
+                <LogOut size={18} />
+              </Button>
             </div>
           </div>
         </header>

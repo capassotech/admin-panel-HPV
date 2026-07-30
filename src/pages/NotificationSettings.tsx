@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail } from "lucide-react";
+import PageHeader from "@/components/layouts/PageHeader";
 
 const API_URL =
   import.meta.env.VITE_API_URL || "https://home-pisos-backend.onrender.com";
@@ -62,12 +63,10 @@ const NotificationSettings: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-lg">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Notificaciones</h1>
-        <p className="text-muted-foreground">
-          Configurá a qué email llegan los avisos de nuevos pedidos.
-        </p>
-      </div>
+      <PageHeader
+        title="Notificaciones"
+        description="Configurá a qué email llegan los avisos de nuevos pedidos."
+      />
 
       <Card>
         <CardHeader className="pb-3">
